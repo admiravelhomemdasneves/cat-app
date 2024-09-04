@@ -71,7 +71,11 @@ public class OrderProductController {
 
     @DeleteMapping("/{id}")
     Optional<OrderProduct> delete(@PathVariable int id) {
-        orderProductService.deleteById(id);
+        try {
+            orderProductService.deleteById(id);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return read(id);
     }
 }

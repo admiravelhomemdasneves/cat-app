@@ -1,7 +1,7 @@
 package com.camaja.catapp.controllers;
 
 import com.camaja.catapp.models.Address;
-import com.camaja.catapp.services.AddressService;
+import com.camaja.catapp.repository.AddressRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,35 +13,35 @@ import java.util.Optional;
 @CrossOrigin
 public class AddressController {
     @Autowired
-    AddressService addressService;
+    AddressRepository addressRepository;
 
     @GetMapping
     Iterable<Address> read() {
-        return addressService.findAll();
+        return addressRepository.findAll();
     }
 
     @GetMapping("/{id}")
     Optional<Address> read(@PathVariable int id) {
-        return addressService.findById(id);
+        return addressRepository.findById(id);
     }
 
     @PostMapping
     Address save(@RequestBody Address address) {
         address.setA$user$(new Timestamp(System.currentTimeMillis()));
-        addressService.save(address);
+        addressRepository.save(address);
         return address;
     }
 
     @PutMapping
     Address update(@RequestBody Address address) {
         address.setA$user$(new Timestamp(System.currentTimeMillis()));
-        addressService.save(address);
+        addressRepository.save(address);
         return address;
     }
 
     @DeleteMapping("/{id}")
     Optional<Address> delete(@PathVariable int id) {
-        addressService.deleteById(id);
+        addressRepository.deleteById(id);
         return read(id);
     }
 }

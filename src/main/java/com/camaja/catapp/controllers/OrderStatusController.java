@@ -1,7 +1,7 @@
 package com.camaja.catapp.controllers;
 
 import com.camaja.catapp.models.OrderStatus;
-import com.camaja.catapp.services.OrderStatusService;
+import com.camaja.catapp.repository.OrderStatusRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,35 +13,35 @@ import java.util.Optional;
 @CrossOrigin
 public class OrderStatusController {
     @Autowired
-    OrderStatusService orderStatusService;
+    OrderStatusRepository orderStatusRepository;
 
     @GetMapping
     Iterable<OrderStatus> read() {
-        return orderStatusService.findAll();
+        return orderStatusRepository.findAll();
     }
 
     @GetMapping("/{id}")
     Optional<OrderStatus> read(@PathVariable int id) {
-        return orderStatusService.findById(id);
+        return orderStatusRepository.findById(id);
     }
 
     @PostMapping
     OrderStatus save(@RequestBody OrderStatus orderStatus) {
         orderStatus.setA$user$(new Timestamp(System.currentTimeMillis()));
-        orderStatusService.save(orderStatus);
+        orderStatusRepository.save(orderStatus);
         return orderStatus;
     }
 
     @PutMapping
     OrderStatus update(@RequestBody OrderStatus orderStatus) {
         orderStatus.setA$user$(new Timestamp(System.currentTimeMillis()));
-        orderStatusService.save(orderStatus);
+        orderStatusRepository.save(orderStatus);
         return orderStatus;
     }
 
     @DeleteMapping("/{id}")
     Optional<OrderStatus> delete(@PathVariable int id) {
-        orderStatusService.deleteById(id);
+        orderStatusRepository.deleteById(id);
         return read(id);
     }
 }

@@ -5,9 +5,9 @@ import com.camaja.catapp.dto.CompleteOrderProductDTO;
 import com.camaja.catapp.models.Order;
 import com.camaja.catapp.models.OrderProduct;
 import com.camaja.catapp.models.OrderProductSpecs;
-import com.camaja.catapp.services.OrderProductService;
-import com.camaja.catapp.services.OrderProductSpecsService;
-import com.camaja.catapp.services.OrderService;
+import com.camaja.catapp.repository.OrderProductRepository;
+import com.camaja.catapp.repository.OrderProductSpecsRepository;
+import com.camaja.catapp.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,33 +21,33 @@ import java.util.Optional;
 @CrossOrigin
 public class OrderController {
     @Autowired
-    OrderService orderService;
+    OrderRepository orderRepository;
     @Autowired
-    OrderProductService orderProductService;
+    OrderProductRepository orderProductRepository;
     @Autowired
-    OrderProductSpecsService orderProductSpecsService;
+    OrderProductSpecsRepository orderProductSpecsRepository;
 
     @GetMapping
     Iterable<Order> read() {
-        return orderService.findAll();
+        return orderRepository.findAll();
     }
 
     @GetMapping("/{id}")
     Optional<Order> read(@PathVariable int id) {
-        return orderService.findById(id);
+        return orderRepository.findById(id);
     }
 
     @GetMapping("/complete/{id}")
     CompleteOrderDTO readCompleteOrder(@PathVariable int id) {
-        Optional<Order> order = orderService.findById(id);
+        Optional<Order> order = orderRepository.findById(id);
 
         if (order.isPresent()) {
-            Iterable<OrderProduct> orderProducts = orderProductService.findByOrder(order);
+            Iterable<OrderProduct> orderProducts = orderProductRepository.findByOrder(order);
             List<CompleteOrderProductDTO> completeOrderProducts = new ArrayList<>();
 
             //Fetch complete info for each OrderProduct
             for (OrderProduct orderProduct : orderProducts) {
-                Iterable<OrderProductSpecs> orderProductSpecs = orderProductSpecsService.findByOrderProduct(Optional.ofNullable(orderProduct));
+                Iterable<OrderProductSpecs> orderProductSpecs = orderProductSpecsRepository.findByOrderProduct(Optional.ofNullable(orderProduct));
                 CompleteOrderProductDTO completeOrderProductDTO = new CompleteOrderProductDTO(orderProduct, orderProductSpecs);
                 completeOrderProducts.add(completeOrderProductDTO);
             }
@@ -64,7 +64,7 @@ public class OrderController {
     Order save(@RequestBody Order order) {
         if (order.getDate_requested() == null) {order.setDate_requested(new Timestamp(System.currentTimeMillis()));}
         order.setA$date$(new Timestamp(System.currentTimeMillis()));
-        orderService.save(order);
+        orderRepository.save(order);
         return order;
     }
 
@@ -72,13 +72,13 @@ public class OrderController {
     Order update(@RequestBody Order order) {
         if (order.getDate_requested() == null) {order.setDate_requested(new Timestamp(System.currentTimeMillis()));}
         order.setA$date$(new Timestamp(System.currentTimeMillis()));
-        orderService.save(order);
+        orderRepository.save(order);
         return order;
     }
 
     @DeleteMapping("/{id}")
     Optional<Order> delete(@PathVariable int id) {
-        orderService.deleteById(id);
+        orderRepository.deleteById(id);
         return read(id);
     }
 }

@@ -1,7 +1,7 @@
 package com.camaja.catapp.controllers;
 
 import com.camaja.catapp.models.OrderPriority;
-import com.camaja.catapp.services.OrderPriorityService;
+import com.camaja.catapp.repository.OrderPriorityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,35 +13,35 @@ import java.util.Optional;
 @CrossOrigin
 public class OrderPriorityController {
     @Autowired
-    OrderPriorityService orderPriorityService;
+    OrderPriorityRepository orderPriorityRepository;
 
     @GetMapping
     Iterable<OrderPriority> read() {
-        return orderPriorityService.findAll();
+        return orderPriorityRepository.findAll();
     }
 
     @GetMapping("/{id}")
     Optional<OrderPriority> read(@PathVariable int id) {
-        return orderPriorityService.findById(id);
+        return orderPriorityRepository.findById(id);
     }
 
     @PostMapping
     OrderPriority save(@RequestBody OrderPriority orderPriority) {
         orderPriority.setA$user$(new Timestamp(System.currentTimeMillis()));
-        orderPriorityService.save(orderPriority);
+        orderPriorityRepository.save(orderPriority);
         return orderPriority;
     }
 
     @PutMapping
     OrderPriority update(@RequestBody OrderPriority orderPriority) {
         orderPriority.setA$user$(new Timestamp(System.currentTimeMillis()));
-        orderPriorityService.save(orderPriority);
+        orderPriorityRepository.save(orderPriority);
         return orderPriority;
     }
 
     @DeleteMapping("/{id}")
     Optional<OrderPriority> delete(@PathVariable int id) {
-        orderPriorityService.deleteById(id);
+        orderPriorityRepository.deleteById(id);
         return read(id);
     }
 }

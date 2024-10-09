@@ -8,9 +8,9 @@ import com.camaja.catapp.services.AuthenticationService;
 import com.camaja.catapp.services.JwtService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import responses.LoginResponse;
+import com.camaja.catapp.responses.LoginResponse;
 
-@RequestMapping("/auth/")
+@RequestMapping("/auth")
 @RestController
 public class AuthenticationController {
     private final JwtService jwtService;

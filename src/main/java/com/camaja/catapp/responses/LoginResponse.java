@@ -1,4 +1,4 @@
-package responses;
+package com.camaja.catapp.responses;
 
 import lombok.Getter;
 import lombok.Setter;

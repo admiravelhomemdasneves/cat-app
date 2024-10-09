@@ -39,12 +39,14 @@ public class AuthenticationService {
         user.setVerificationCode(generateVerificationCode());
         user.setVerificationExpiration(LocalDateTime.now().plusMinutes(15));
         user.setEnabled(false);
-        sendVerificationEmail(user);
+        //sendVerificationEmail(user);
         return userRepository.save(user);
     }
 
     public User authenticate(LoginUserDTO input) {
-        User user = userRepository.findByEmail(input.getEmail())
+        String email = input.getEmail();
+
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (!user.isEnabled()) {

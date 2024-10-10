@@ -39,7 +39,7 @@ public class AuthenticationService {
         user.setVerificationCode(generateVerificationCode());
         user.setVerificationExpiration(LocalDateTime.now().plusMinutes(15));
         user.setEnabled(false);
-        //sendVerificationEmail(user);
+        sendVerificationEmail(user);
         return userRepository.save(user);
     }
 

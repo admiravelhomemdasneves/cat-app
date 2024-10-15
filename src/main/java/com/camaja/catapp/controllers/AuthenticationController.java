@@ -12,6 +12,7 @@ import com.camaja.catapp.responses.LoginResponse;
 
 @RequestMapping("/auth")
 @RestController
+@CrossOrigin
 public class AuthenticationController {
     private final JwtService jwtService;
 

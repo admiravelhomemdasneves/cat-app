@@ -29,6 +29,7 @@ public class OrderController {
 
     @GetMapping
     Iterable<Order> read() {
+        System.out.println("Reading all orders");
         return orderRepository.findAll();
     }
 

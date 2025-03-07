@@ -1,5 +1,6 @@
 package com.camaja.catapp.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -17,6 +18,7 @@ public class OrderProductSpecs {
 
     @ManyToOne
     @JoinColumn(name="ID_ORDER_PRODUCT")
+    @JsonBackReference
     private OrderProduct orderProduct;
 
     @Column(name="QUANTITY")
@@ -33,4 +35,7 @@ public class OrderProductSpecs {
     @Size(max=2)
     @Column(name="FLAG_STATUS")
     private String flagStatus;
+
+    @Column(name="FLAG_ACTIVE")
+    private Boolean flagActive;
 }

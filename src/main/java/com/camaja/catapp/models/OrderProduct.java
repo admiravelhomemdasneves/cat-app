@@ -1,6 +1,8 @@
 package com.camaja.catapp.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -21,10 +23,11 @@ public class OrderProduct {
 
     @ManyToOne
     @JoinColumn(name="ID_ORDER")
+    @JsonBackReference
     private Order order;
 
-    @JsonIgnore
     @OneToMany(mappedBy="orderProduct")
+    @JsonManagedReference
     private List<OrderProductSpecs> orderProductSpecs;
 
     @Size(max=400, message="Description can't have more than 400 characters")
@@ -38,6 +41,9 @@ public class OrderProduct {
     @ManyToOne
     @JoinColumn(name="ID_PRINTING_SERVICE")
     private PrintingService printingService;
+
+    @Column(name="FLAG_ACTIVE")
+    private Boolean flagActive;
 
     @JsonIgnore
     @Column(name="A$DATE$")

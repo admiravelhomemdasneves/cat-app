@@ -1,12 +1,15 @@
 package com.camaja.catapp.controllers;
 
+import com.camaja.catapp.models.PrintingService;
 import com.camaja.catapp.models.Product;
 import com.camaja.catapp.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/product")
@@ -16,8 +19,10 @@ public class ProductController {
     ProductRepository productRepository;
 
     @GetMapping
-    Iterable<Product> read() {
-        return productRepository.findAll();
+    Iterable<Product> getActiveProducts() {
+        List<Product> products = (List<Product>) productRepository.findAll();
+        List<Product> activeProducts = products.stream().filter(product -> product.getFlagActive() == null || product.getFlagActive() == true).collect(Collectors.toList());
+        return activeProducts;
     }
 
     @GetMapping("/{id}")
@@ -27,14 +32,14 @@ public class ProductController {
 
     @PostMapping
     Product save(@RequestBody Product product) {
-        product.setA$user$(new Timestamp(System.currentTimeMillis()));
+        product.setA$date$(new Timestamp(System.currentTimeMillis()));
         productRepository.save(product);
         return product;
     }
 
     @PutMapping
     Product update(@RequestBody Product product) {
-        product.setA$user$(new Timestamp(System.currentTimeMillis()));
+        product.setA$date$(new Timestamp(System.currentTimeMillis()));
         productRepository.save(product);
         return product;
     }

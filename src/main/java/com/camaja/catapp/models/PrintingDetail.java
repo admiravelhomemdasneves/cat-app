@@ -21,6 +21,9 @@ public class PrintingDetail {
     @JoinColumn(name="ID_ORDER_PRODUCT")
     private OrderProduct orderProduct;
 
+    @Column(name="FLAG_ACTIVE")
+    private Boolean flagActive;
+
     @JsonIgnore
     @Column(name="A$DATE$")
     private Timestamp a$user$;

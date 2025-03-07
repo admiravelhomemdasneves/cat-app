@@ -1,12 +1,15 @@
 package com.camaja.catapp.controllers;
 
+import com.camaja.catapp.models.Contact;
 import com.camaja.catapp.models.DeliveryDetail;
 import com.camaja.catapp.repository.DeliveryDetailRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/deliveryDetail")
@@ -16,8 +19,10 @@ public class DeliveryDetailController {
     DeliveryDetailRepository deliveryDetailRepository;
 
     @GetMapping
-    Iterable<DeliveryDetail> read() {
-        return deliveryDetailRepository.findAll();
+    Iterable<DeliveryDetail> getActiveDeliveryDetails() {
+        List<DeliveryDetail> deliveryDetails = (List<DeliveryDetail>) deliveryDetailRepository.findAll();
+        List<DeliveryDetail> activeDeliveryDetails = deliveryDetails.stream().filter(deliveryDetail -> deliveryDetail.getFlagActive() == null || deliveryDetail.getFlagActive() == true).collect(Collectors.toList());
+        return activeDeliveryDetails;
     }
 
     @GetMapping("/{id}")

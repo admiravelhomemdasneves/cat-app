@@ -1,12 +1,15 @@
 package com.camaja.catapp.controllers;
 
+import com.camaja.catapp.models.Order;
 import com.camaja.catapp.models.OrderPriority;
 import com.camaja.catapp.repository.OrderPriorityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/orderPriority")
@@ -16,8 +19,10 @@ public class OrderPriorityController {
     OrderPriorityRepository orderPriorityRepository;
 
     @GetMapping
-    Iterable<OrderPriority> read() {
-        return orderPriorityRepository.findAll();
+    Iterable<OrderPriority> getActiveOrderPriorities() {
+        List<OrderPriority> orderPriorities = (List<OrderPriority>) orderPriorityRepository.findAll();
+        List<OrderPriority> activeOrderPriorities = orderPriorities.stream().filter(orderPriority -> orderPriority.getFlagActive() == null || orderPriority.getFlagActive() == true).collect(Collectors.toList());
+        return activeOrderPriorities;
     }
 
     @GetMapping("/{id}")

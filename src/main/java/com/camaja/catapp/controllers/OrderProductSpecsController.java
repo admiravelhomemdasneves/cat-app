@@ -7,7 +7,9 @@ import com.camaja.catapp.repository.OrderProductSpecsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/orderProductSpecs")
@@ -19,8 +21,10 @@ public class OrderProductSpecsController {
     OrderProductRepository orderProductRepository;
 
     @GetMapping
-    Iterable<OrderProductSpecs> read() {
-        return orderProductSpecsRepository.findAll();
+    Iterable<OrderProductSpecs> getActiveOrderProductSpecs() {
+        List<OrderProductSpecs> orderProductSpecs = (List<OrderProductSpecs>) orderProductSpecsRepository.findAll();
+        List<OrderProductSpecs> activeOrderProducts = orderProductSpecs.stream().filter(orderProductSpec -> orderProductSpec.getFlagActive() == null || orderProductSpec.getFlagActive() == true).collect(Collectors.toList());
+        return activeOrderProducts;
     }
 
     @GetMapping("/{id}")

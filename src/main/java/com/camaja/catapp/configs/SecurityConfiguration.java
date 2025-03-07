@@ -51,17 +51,13 @@ public class SecurityConfiguration {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://cat-app-backoffice-drf9fydxfshwfcdk.westeurope-01.azurewebsites.net"));
-
-        configuration.setAllowedHeaders(Arrays.asList("Origin", "Access-Control-Allow-Origin", "Content-Type","Accept", "Authorization", "X-Requested-With","Access-Control-Request-Method", "Access-Control-Request-Headers","Access-Control-Allow-Headers"));
-        //configuration.setExposedHeaders(Arrays.asList("Origin", "Content-Type", "Accept","Access-Control-Allow-Origin", "Access-Control-Allow-Headers", "Access-Control-Allow-Credentials"));
+        configuration.setAllowedHeaders(Arrays.asList("Origin","Access-Control-Allow-Origin","Content-Type","Accept","Authorization","X-Requested-With","Access-Control-Request-Method","Access-Control-Request-Headers","Access-Control-Allow-Headers"));
         configuration.setAllowedMethods(Arrays.asList("Access-Control-Allow-Methods","GET", "POST", "PUT", "DELETE", "OPTIONS"));
-
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
 
-        System.out.println("CORS configuration initialized.");
         return source;
     }
 }

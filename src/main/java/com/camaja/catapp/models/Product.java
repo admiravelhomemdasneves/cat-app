@@ -34,7 +34,10 @@ public class Product {
     @Column(name="DESCRIPTION")
     private String description;
 
+    @Column(name="FLAG_ACTIVE")
+    private Boolean flagActive;
+
     @JsonIgnore
     @Column(name="A$DATE$")
-    private Timestamp a$user$;
+    private Timestamp a$date$;
 }

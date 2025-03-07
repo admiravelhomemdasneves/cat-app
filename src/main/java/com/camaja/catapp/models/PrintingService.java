@@ -26,6 +26,9 @@ public class PrintingService {
     @Column(name="DESCRIPTION")
     private String description;
 
+    @Column(name="FLAG_ACTIVE")
+    private Boolean flagActive;
+
     @JsonIgnore
     @Column(name="A$DATE$")
     private Timestamp a$user$;

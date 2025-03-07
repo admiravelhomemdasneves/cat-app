@@ -1,6 +1,8 @@
 package com.camaja.catapp.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -19,11 +21,9 @@ public class Order {
     @Column(name="ID_ORDER")
     private Long id_order;
 
-    @Size(max=40, message="Name can't have more than 40 characters")
     @Column(name="NAME")
     private String name;
 
-    @Size(max=400, message="Description can't have more than 400 characters")
     @Column(name="DESCRIPTION")
     private String description;
 
@@ -39,15 +39,10 @@ public class Order {
     @JoinColumn(name="ID_PRIORITY")
     private OrderPriority orderPriority;
 
-    @JsonIgnore
     @OneToMany(mappedBy="order")
+    @JsonManagedReference
     private List<OrderProduct> orderProducts;
-/*
-    @OneToOne
-    @JsonIgnore
-    @JoinColumn(name="ID_DELIVERY_DETAIL")
-    private DeliveryDetail deliveryDetail;
-*/
+
     @Column(name="DATE_REQUESTED")
     private Timestamp date_requested;
 
@@ -59,6 +54,9 @@ public class Order {
 
     @Column(name="DATE_DUE")
     private Timestamp date_due;
+
+    @Column(name="FLAG_ACTIVE")
+    private Boolean flagActive;
 
     @JsonIgnore
     @Column(name="A$DATE$")

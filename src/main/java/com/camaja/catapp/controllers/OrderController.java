@@ -2,9 +2,7 @@ package com.camaja.catapp.controllers;
 
 import com.camaja.catapp.dto.CompleteOrderDTO;
 import com.camaja.catapp.dto.CompleteOrderProductDTO;
-import com.camaja.catapp.models.Order;
-import com.camaja.catapp.models.OrderProduct;
-import com.camaja.catapp.models.OrderProductSpecs;
+import com.camaja.catapp.models.*;
 import com.camaja.catapp.repository.OrderProductRepository;
 import com.camaja.catapp.repository.OrderProductSpecsRepository;
 import com.camaja.catapp.repository.OrderRepository;
@@ -15,6 +13,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/order")
@@ -22,15 +21,12 @@ import java.util.Optional;
 public class OrderController {
     @Autowired
     OrderRepository orderRepository;
-    @Autowired
-    OrderProductRepository orderProductRepository;
-    @Autowired
-    OrderProductSpecsRepository orderProductSpecsRepository;
 
     @GetMapping
-    Iterable<Order> read() {
-        System.out.println("Reading all orders");
-        return orderRepository.findAll();
+    Iterable<Order> getActiveOrders() {
+        List<Order> orders = (List<Order>) orderRepository.findAll();
+        List<Order> activeOrders = orders.stream().filter(order -> order.getFlagActive() == null || order.getFlagActive() == true).collect(Collectors.toList());
+        return activeOrders;
     }
 
     @GetMapping("/{id}")
@@ -38,27 +34,28 @@ public class OrderController {
         return orderRepository.findById(id);
     }
 
-    @GetMapping("/complete/{id}")
-    CompleteOrderDTO readCompleteOrder(@PathVariable int id) {
-        Optional<Order> order = orderRepository.findById(id);
+    @GetMapping("/inactivate/{id}")
+    Order inactivateOrder(@PathVariable int id) {
+        Optional<Order> orderOptional = orderRepository.findById(id);
 
-        if (order.isPresent()) {
-            Iterable<OrderProduct> orderProducts = orderProductRepository.findByOrder(order);
-            List<CompleteOrderProductDTO> completeOrderProducts = new ArrayList<>();
-
-            //Fetch complete info for each OrderProduct
-            for (OrderProduct orderProduct : orderProducts) {
-                Iterable<OrderProductSpecs> orderProductSpecs = orderProductSpecsRepository.findByOrderProduct(Optional.ofNullable(orderProduct));
-                CompleteOrderProductDTO completeOrderProductDTO = new CompleteOrderProductDTO(orderProduct, orderProductSpecs);
-                completeOrderProducts.add(completeOrderProductDTO);
-            }
-
-            CompleteOrderDTO completeOrderDTO = new CompleteOrderDTO(order.get(), completeOrderProducts);
-
-            return completeOrderDTO;
+        if (orderOptional.isPresent()) {
+            Order order = orderOptional.get();
+            order.setFlagActive(false);
+            order.setA$date$(new Timestamp(System.currentTimeMillis()));
+            orderRepository.save(order);
+            return order;
         } else {
             return null;
         }
+    }
+
+    @PostMapping("/new")
+    Order createNewOrder(@RequestBody Order order) {
+        order.setDate_requested(new Timestamp(System.currentTimeMillis()));
+        order.setA$date$(new Timestamp(System.currentTimeMillis()));
+        order.setId_order(null);
+        orderRepository.save(order);
+        return order;
     }
 
     @PostMapping

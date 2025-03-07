@@ -1,12 +1,15 @@
 package com.camaja.catapp.controllers;
 
+import com.camaja.catapp.models.Address;
 import com.camaja.catapp.models.Contact;
 import com.camaja.catapp.repository.ContactRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/contact")
@@ -16,8 +19,10 @@ public class ContactController {
     ContactRepository contactRepository;
 
     @GetMapping
-    Iterable<Contact> read() {
-        return contactRepository.findAll();
+    Iterable<Contact> getActiveContacts() {
+        List<Contact> contacts = (List<Contact>) contactRepository.findAll();
+        List<Contact> activeContacts = contacts.stream().filter(contact -> contact.getFlagActive() != null && contact.getFlagActive() == true).collect(Collectors.toList());
+        return activeContacts;
     }
 
     @GetMapping("/{id}")
@@ -25,16 +30,31 @@ public class ContactController {
         return contactRepository.findById(id);
     }
 
+    @GetMapping("/inactivate/{id}")
+    Contact inactivateContact(@PathVariable int id) {
+        Optional<Contact> contactOptional = contactRepository.findById(id);
+
+        if (contactOptional.isPresent()) {
+            Contact contact = contactOptional.get();
+            contact.setFlagActive(false);
+            contact.setA$date$(new Timestamp(System.currentTimeMillis()));
+            contactRepository.save(contact);
+            return contact;
+        } else {
+            return null;
+        }
+    }
+
     @PostMapping
     Contact save(@RequestBody Contact contact) {
-        contact.setA$user$(new Timestamp(System.currentTimeMillis()));
+        contact.setA$date$(new Timestamp(System.currentTimeMillis()));
         contactRepository.save(contact);
         return contact;
     }
 
     @PutMapping
     Contact update(@RequestBody Contact contact) {
-        contact.setA$user$(new Timestamp(System.currentTimeMillis()));
+        contact.setA$date$(new Timestamp(System.currentTimeMillis()));
         contactRepository.save(contact);
         return contact;
     }

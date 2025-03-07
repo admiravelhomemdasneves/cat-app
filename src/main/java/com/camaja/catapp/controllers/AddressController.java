@@ -1,12 +1,15 @@
 package com.camaja.catapp.controllers;
 
 import com.camaja.catapp.models.Address;
+import com.camaja.catapp.models.Contact;
 import com.camaja.catapp.repository.AddressRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/address")
@@ -16,8 +19,10 @@ public class AddressController {
     AddressRepository addressRepository;
 
     @GetMapping
-    Iterable<Address> read() {
-        return addressRepository.findAll();
+    Iterable<Address> getActiveAdresses() {
+        List<Address> adresses = (List<Address>) addressRepository.findAll();
+        List<Address> activeAdresses = adresses.stream().filter(address -> address.getFlagActive() != null && address.getFlagActive() == true).collect(Collectors.toList());
+        return activeAdresses;
     }
 
     @GetMapping("/{id}")
@@ -25,16 +30,31 @@ public class AddressController {
         return addressRepository.findById(id);
     }
 
+    @GetMapping("/inactivate/{id}")
+    Address inactivateAddress(@PathVariable int id) {
+        Optional<Address> addressOptional = addressRepository.findById(id);
+
+        if (addressOptional.isPresent()) {
+            Address address = addressOptional.get();
+            address.setFlagActive(false);
+            address.setA$date$(new Timestamp(System.currentTimeMillis()));
+            addressRepository.save(address);
+            return address;
+        } else {
+            return null;
+        }
+    }
+
     @PostMapping
     Address save(@RequestBody Address address) {
-        address.setA$user$(new Timestamp(System.currentTimeMillis()));
+        address.setA$date$(new Timestamp(System.currentTimeMillis()));
         addressRepository.save(address);
         return address;
     }
 
     @PutMapping
     Address update(@RequestBody Address address) {
-        address.setA$user$(new Timestamp(System.currentTimeMillis()));
+        address.setA$date$(new Timestamp(System.currentTimeMillis()));
         addressRepository.save(address);
         return address;
     }

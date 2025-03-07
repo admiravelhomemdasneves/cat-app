@@ -26,6 +26,9 @@ public class DeliveryDetail {
     @OneToOne(mappedBy="deliveryDetail")
     private Order order;
 */
+    @Column(name="FLAG_ACTIVE")
+    private Boolean flagActive;
+
     @JsonIgnore
     @Column(name="A$DATE$")
     private Timestamp a$user$;

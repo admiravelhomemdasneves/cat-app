@@ -2,6 +2,7 @@ package com.camaja.catapp.controllers;
 
 import com.camaja.catapp.dto.CompleteOrderProductDTO;
 import com.camaja.catapp.models.Order;
+import com.camaja.catapp.models.OrderPriority;
 import com.camaja.catapp.models.OrderProduct;
 import com.camaja.catapp.models.OrderProductSpecs;
 import com.camaja.catapp.repository.OrderProductRepository;
@@ -11,7 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/orderProduct")
@@ -25,8 +28,10 @@ public class OrderProductController {
     OrderProductSpecsRepository orderProductSpecsRepository;
 
     @GetMapping
-    Iterable<OrderProduct> read() {
-        return orderProductRepository.findAll();
+    Iterable<OrderProduct> getActiveOrderProduct() {
+        List<OrderProduct> orderProducts = (List<OrderProduct>) orderProductRepository.findAll();
+        List<OrderProduct> activeOrderProducts = orderProducts.stream().filter(orderProduct -> orderProduct.getFlagActive() == null || orderProduct.getFlagActive() == true).collect(Collectors.toList());
+        return activeOrderProducts;
     }
 
     @GetMapping("/{id}")

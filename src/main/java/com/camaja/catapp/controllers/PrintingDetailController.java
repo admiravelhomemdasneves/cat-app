@@ -1,12 +1,15 @@
 package com.camaja.catapp.controllers;
 
+import com.camaja.catapp.models.OrderStatus;
 import com.camaja.catapp.models.PrintingDetail;
 import com.camaja.catapp.repository.PrintingDetailRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/printingDetail")
@@ -16,8 +19,10 @@ public class PrintingDetailController {
     PrintingDetailRepository printingDetailRepository;
 
     @GetMapping
-    Iterable<PrintingDetail> read() {
-        return printingDetailRepository.findAll();
+    Iterable<PrintingDetail> getActivePrintingDetails() {
+        List<PrintingDetail> printingDetails = (List<PrintingDetail>) printingDetailRepository.findAll();
+        List<PrintingDetail> activePrintingDetails = printingDetails.stream().filter(printingDetail -> printingDetail.getFlagActive() == null || printingDetail.getFlagActive() == true).collect(Collectors.toList());
+        return activePrintingDetails;
     }
 
     @GetMapping("/{id}")

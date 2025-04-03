@@ -1,6 +1,7 @@
 package com.camaja.catapp.configs;
 
 import com.camaja.catapp.services.JwtService;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -70,6 +71,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             filterChain.doFilter(request, response);
+        } catch (ExpiredJwtException expiredException) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"JWT token has expired\"}");
+            response.getWriter().flush();
+            return;
         } catch (Exception exception) {
             exception.printStackTrace();
             handlerExceptionResolver.resolveException(request, response, null, exception);

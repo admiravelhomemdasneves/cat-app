@@ -26,10 +26,6 @@ public class OrderProduct {
     @JsonBackReference
     private Order order;
 
-    @OneToMany(mappedBy="orderProduct")
-    @JsonManagedReference
-    private List<OrderProductSpecs> orderProductSpecs;
-
     @Size(max=400, message="Description can't have more than 400 characters")
     @Column(name="DESCRIPTION")
     private String description;
@@ -41,6 +37,15 @@ public class OrderProduct {
     @ManyToOne
     @JoinColumn(name="ID_PRINTING_SERVICE")
     private PrintingService printingService;
+
+    @Column(name="QUANTITY")
+    private Integer quantity;
+
+    @Column(name="SIZE")
+    private String size;
+
+    @Column(name="COLOR")
+    private String color;
 
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;

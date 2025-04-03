@@ -1,12 +1,8 @@
 package com.camaja.catapp.controllers;
 
-import com.camaja.catapp.dto.CompleteOrderProductDTO;
 import com.camaja.catapp.models.Order;
-import com.camaja.catapp.models.OrderPriority;
 import com.camaja.catapp.models.OrderProduct;
-import com.camaja.catapp.models.OrderProductSpecs;
 import com.camaja.catapp.repository.OrderProductRepository;
-import com.camaja.catapp.repository.OrderProductSpecsRepository;
 import com.camaja.catapp.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -24,8 +20,6 @@ public class OrderProductController {
     OrderProductRepository orderProductRepository;
     @Autowired
     OrderRepository orderRepository;
-    @Autowired
-    OrderProductSpecsRepository orderProductSpecsRepository;
 
     @GetMapping
     Iterable<OrderProduct> getActiveOrderProduct() {
@@ -45,24 +39,14 @@ public class OrderProductController {
         return orderProductRepository.findByOrder(order);
     }
 
-    @GetMapping("/complete/{id}")
-    CompleteOrderProductDTO readCompleteOrderProduct(@PathVariable int id) {
-        Optional<OrderProduct> orderProduct = orderProductRepository.findById(id);
-
-        if (orderProduct.isPresent()) {
-            Iterable<OrderProductSpecs> orderProductSpecs = orderProductSpecsRepository.findByOrderProduct(orderProduct);
-
-            CompleteOrderProductDTO completeOrderProductDTO = new CompleteOrderProductDTO(orderProduct.get(), orderProductSpecs);
-
-            return completeOrderProductDTO;
-        } else {
-            return null;
-        }
-    }
-
     @PostMapping
     OrderProduct save(@RequestBody OrderProduct orderProduct) {
         orderProduct.setA$date$(new Timestamp(System.currentTimeMillis()));
+
+        if (orderProduct.getQuantity() == null) {
+            orderProduct.setQuantity(0);
+        }
+
         orderProductRepository.save(orderProduct);
         return orderProduct;
     }
@@ -70,17 +54,28 @@ public class OrderProductController {
     @PutMapping
     OrderProduct update(@RequestBody OrderProduct orderProduct) {
         orderProduct.setA$date$(new Timestamp(System.currentTimeMillis()));
+
+        if (orderProduct.getQuantity() == null) {
+            orderProduct.setQuantity(0);
+        }
+
         orderProductRepository.save(orderProduct);
         return orderProduct;
     }
 
-    @DeleteMapping("/{id}")
-    Optional<OrderProduct> delete(@PathVariable int id) {
-        try {
-            orderProductRepository.deleteById(id);
-        } catch (Exception e) {
-            e.printStackTrace();
+    @GetMapping("/inactivate/{id}")
+    OrderProduct inactivateOrderProduct(@PathVariable int id) {
+        Optional<OrderProduct> orderProductOptional = orderProductRepository.findById(id);
+
+        if (orderProductOptional.isPresent()) {
+            OrderProduct orderProduct = orderProductOptional.get();
+            orderProduct.setFlagActive(false);
+            orderProduct.setOrder(null);
+            orderProduct.setA$date$(new Timestamp(System.currentTimeMillis()));
+            orderProductRepository.save(orderProduct);
+            return orderProduct;
+        } else {
+            return null;
         }
-        return read(id);
     }
 }

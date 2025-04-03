@@ -1,6 +1,5 @@
 package com.camaja.catapp.controllers;
 
-import com.camaja.catapp.models.OrderProductSpecs;
 import com.camaja.catapp.models.OrderStatus;
 import com.camaja.catapp.repository.OrderStatusRepository;
 import org.springframework.beans.factory.annotation.Autowired;

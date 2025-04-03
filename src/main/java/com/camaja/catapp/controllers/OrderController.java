@@ -1,16 +1,11 @@
 package com.camaja.catapp.controllers;
 
-import com.camaja.catapp.dto.CompleteOrderDTO;
-import com.camaja.catapp.dto.CompleteOrderProductDTO;
 import com.camaja.catapp.models.*;
-import com.camaja.catapp.repository.OrderProductRepository;
-import com.camaja.catapp.repository.OrderProductSpecsRepository;
 import com.camaja.catapp.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;

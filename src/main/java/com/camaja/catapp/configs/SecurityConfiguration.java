@@ -50,8 +50,8 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("localhost:3000", "cat-app-backoffice-drf9fydxfshwfcdk.westeurope-01.azurewebsites.net"));
-        configuration.setAllowedHeaders(Arrays.asList("Content-Type","Accept"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "https://cat-app-backoffice-drf9fydxfshwfcdk.westeurope-01.azurewebsites.net"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("Access-Control-Allow-Methods","GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowCredentials(true);
 

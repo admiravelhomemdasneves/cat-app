@@ -1,5 +1,6 @@
 package com.camaja.catapp.controllers;
 
+import com.camaja.catapp.models.Contact;
 import com.camaja.catapp.models.PrintingService;
 import com.camaja.catapp.models.Product;
 import com.camaja.catapp.repository.ProductRepository;
@@ -28,6 +29,21 @@ public class ProductController {
     @GetMapping("/{id}")
     Optional<Product> read(@PathVariable int id) {
         return productRepository.findById(id);
+    }
+
+    @GetMapping("/inactivate/{id}")
+    Product inactivateProduct(@PathVariable int id) {
+        Optional<Product> productOptional = productRepository.findById(id);
+
+        if (productOptional.isPresent()) {
+            Product product = productOptional.get();
+            product.setFlagActive(false);
+            product.setA$date$(new Timestamp(System.currentTimeMillis()));
+            productRepository.save(product);
+            return product;
+        } else {
+            return null;
+        }
     }
 
     @PostMapping

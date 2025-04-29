@@ -1,5 +1,6 @@
 package com.camaja.catapp.controllers;
 
+import com.camaja.catapp.models.Contact;
 import com.camaja.catapp.models.Order;
 import com.camaja.catapp.models.OrderPriority;
 import com.camaja.catapp.repository.OrderPriorityRepository;
@@ -28,6 +29,21 @@ public class OrderPriorityController {
     @GetMapping("/{id}")
     Optional<OrderPriority> read(@PathVariable int id) {
         return orderPriorityRepository.findById(id);
+    }
+
+    @GetMapping("/inactivate/{id}")
+    OrderPriority inactivateOrderPriority(@PathVariable int id) {
+        Optional<OrderPriority> orderPriorityOptional = orderPriorityRepository.findById(id);
+
+        if (orderPriorityOptional.isPresent()) {
+            OrderPriority orderPriority = orderPriorityOptional.get();
+            orderPriority.setFlagActive(false);
+            orderPriority.setA$user$(new Timestamp(System.currentTimeMillis()));
+            orderPriorityRepository.save(orderPriority);
+            return orderPriority;
+        } else {
+            return null;
+        }
     }
 
     @PostMapping

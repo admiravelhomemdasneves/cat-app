@@ -1,5 +1,6 @@
 package com.camaja.catapp.controllers;
 
+import com.camaja.catapp.models.Contact;
 import com.camaja.catapp.models.OrderStatus;
 import com.camaja.catapp.repository.OrderStatusRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,21 @@ public class OrderStatusController {
     @GetMapping("/{id}")
     Optional<OrderStatus> read(@PathVariable int id) {
         return orderStatusRepository.findById(id);
+    }
+
+    @GetMapping("/inactivate/{id}")
+    OrderStatus inactivateOrderStatus(@PathVariable int id) {
+        Optional<OrderStatus> orderStatusOptional = orderStatusRepository.findById(id);
+
+        if (orderStatusOptional.isPresent()) {
+            OrderStatus orderStatus = orderStatusOptional.get();
+            orderStatus.setFlagActive(false);
+            orderStatus.setA$user$(new Timestamp(System.currentTimeMillis()));
+            orderStatusRepository.save(orderStatus);
+            return orderStatus;
+        } else {
+            return null;
+        }
     }
 
     @PostMapping

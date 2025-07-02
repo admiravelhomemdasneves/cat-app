@@ -1,6 +1,5 @@
 package com.camaja.catapp.controllers;
 
-import com.camaja.catapp.models.PrintingDetail;
 import com.camaja.catapp.models.PrintingService;
 import com.camaja.catapp.repository.PrintingServiceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +27,21 @@ public class PrintingServiceController {
     @GetMapping("/{id}")
     Optional<PrintingService> read(@PathVariable int id) {
         return printingServiceRepository.findById(id);
+    }
+
+    @GetMapping("/inactivate/{id}")
+    PrintingService inactivatePrintingService(@PathVariable int id) {
+        Optional<PrintingService> printingServiceOptional = printingServiceRepository.findById(id);
+
+        if (printingServiceOptional.isPresent()) {
+            PrintingService printingService = printingServiceOptional.get();
+            printingService.setFlagActive(false);
+            printingService.setA$user$(new Timestamp(System.currentTimeMillis()));
+            printingServiceRepository.save(printingService);
+            return printingService;
+        } else {
+            return null;
+        }
     }
 
     @PostMapping

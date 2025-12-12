@@ -12,7 +12,7 @@ import java.sql.Timestamp;
 @Setter
 @Entity
 @Table(name="CAT_PRIORITIES", schema="CATAPP")
-public class OrderPriority {
+public class Priority {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="ID_PRIORITY")

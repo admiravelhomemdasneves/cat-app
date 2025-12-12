@@ -15,7 +15,7 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name="CAT_ORDER_PRODUCTS", schema="CATAPP")
-public class OrderProduct {
+public class OrderItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="ID_ORDER_PRODUCT")

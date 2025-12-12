@@ -1,10 +1,8 @@
 package com.camaja.catapp.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -29,7 +27,7 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name="ID_STATUS")
-    private OrderStatus orderStatus;
+    private Status status;
 
     @ManyToOne
     @JoinColumn(name="ID_CONTACT")
@@ -37,11 +35,11 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name="ID_PRIORITY")
-    private OrderPriority orderPriority;
+    private Priority priority;
 
     @OneToMany(mappedBy="order")
     @JsonManagedReference
-    private List<OrderProduct> orderProducts;
+    private List<OrderItem> orderItems;
 
     @Column(name="DATE_REQUESTED")
     private Timestamp date_requested;
@@ -54,6 +52,30 @@ public class Order {
 
     @Column(name="DATE_DUE")
     private Timestamp date_due;
+
+    @ManyToOne
+    @JoinColumn(name="DELIVERY_ADDRESS")
+    private Address delivery_address;
+
+    @ManyToOne
+    @JoinColumn(name="BILL_ADDRESS")
+    private Address bill_address;
+
+    @ManyToOne
+    @JoinColumn(name = "ID_PRICE_EXPENSE")
+    private Price expensesPrice;
+
+    @ManyToOne
+    @JoinColumn(name = "ID_PRICE_SERVICE")
+    private Price servicePrice;
+
+    @ManyToOne
+    @JoinColumn(name = "ID_PRICE_TOTAL")
+    private Price totalPrice;
+
+    @ManyToOne
+    @JoinColumn(name = "ID_VAT")
+    private Vat vat;
 
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;

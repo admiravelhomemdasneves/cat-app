@@ -12,7 +12,7 @@ import java.sql.Timestamp;
 @Setter
 @Entity
 @Table(name="CAT_STATUS", schema="CATAPP")
-public class OrderStatus {
+public class Status {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="ID_STATUS")
@@ -25,6 +25,10 @@ public class OrderStatus {
     @Size(max=400, message="Description can't have more than 400 characters")
     @Column(name="DESCRIPTION")
     private String description;
+
+    @ManyToOne
+    @JoinColumn(name="ID_COLOR")
+    private Color color;
 
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;

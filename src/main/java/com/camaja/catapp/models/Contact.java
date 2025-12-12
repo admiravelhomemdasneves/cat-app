@@ -1,6 +1,7 @@
 package com.camaja.catapp.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -8,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 @Getter
 @Setter
@@ -19,29 +21,25 @@ public class Contact {
     @Column(name="ID_CONTACT")
     private Long id_contact;
 
-    @Size(max=20, message="First name can't have more than 20 characters")
     @NotNull(message="First name cannot be blank.")
     @Column(name="FIRST_NAME")
     private String first_name;
 
-    @Size(max=20, message="Last name can't have more than 20 characters")
     @Column(name="LAST_NAME")
     private String last_name;
 
-    @Column(name="STREET")
-    private String street;
+    @Column(name="NIF")
+    private String nif;
 
-    @Column(name="DOOR_NUMBER")
-    private String door_number;
+    @Column(name="PHONE_NUMBER")
+    private String phoneNumber;
 
-    @Column(name="ZIP_CODE")
-    private String zip_code;
+    @Column(name="EMAIL")
+    private String email;
 
-    @Column(name="CITY")
-    private String city;
-
-    @Column(name="COUNTRY")
-    private String country;
+    @OneToMany(mappedBy="contact")
+    @JsonManagedReference
+    private List<Address> addresses;
 
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;

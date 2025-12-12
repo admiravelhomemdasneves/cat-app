@@ -1,13 +1,13 @@
 package com.camaja.catapp.repository;
 
 import com.camaja.catapp.models.Order;
-import com.camaja.catapp.models.OrderProduct;
+import com.camaja.catapp.models.OrderItem;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface OrderProductRepository extends CrudRepository<OrderProduct, Integer> {
-    Iterable<OrderProduct> findByOrder(Optional<Order> order);
+public interface OrderItemRepository extends CrudRepository<OrderItem, Integer> {
+    Iterable<OrderItem> findByOrder(Optional<Order> order);
 }

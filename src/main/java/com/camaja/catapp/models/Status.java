@@ -30,6 +30,9 @@ public class Status {
     @JoinColumn(name="ID_COLOR")
     private Color color;
 
+    @Column(name="TERMINAL_STATUS")
+    private Boolean terminalStatus;
+
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;
 

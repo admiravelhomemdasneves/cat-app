@@ -43,8 +43,9 @@ public class Product {
     @Column(name="CATALOG_REFERENCE")
     private String catalogReference;
 
-    @Column(name="STORE")
-    private String store;
+    @ManyToOne
+    @JoinColumn(name="ID_STORE")
+    private Store store;
 
     @ManyToOne
     @JoinColumn(name="ID_PRICE")

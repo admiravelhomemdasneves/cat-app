@@ -19,10 +19,9 @@ public class Address {
     @Column(name="ID_ADDRESS")
     private Long id_address;
 
-    @JsonIgnore
     @ManyToOne
     @JoinColumn(name="CONTACT")
-    @JsonBackReference
+    @JsonBackReference("contact-addresses")
     private Contact contact;
 
     @Column(name="STREET")

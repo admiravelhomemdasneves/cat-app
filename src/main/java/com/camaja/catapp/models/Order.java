@@ -38,7 +38,7 @@ public class Order {
     private Priority priority;
 
     @OneToMany(mappedBy="order")
-    @JsonManagedReference
+    @JsonManagedReference("order-items")
     private List<OrderItem> orderItems;
 
     @Column(name="DATE_REQUESTED")

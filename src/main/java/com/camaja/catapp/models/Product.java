@@ -30,9 +30,8 @@ public class Product {
     @Column(name="SIZE")
     private String size;
 
-    @ManyToOne
-    @JoinColumn(name="ID_COLOR")
-    private Color color;
+    @Column(name="COLOR_CODE")
+    private String color;
 
     @Column(name="DESCRIPTION")
     private String description;

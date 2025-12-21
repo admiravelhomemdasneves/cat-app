@@ -26,9 +26,8 @@ public class Status {
     @Column(name="DESCRIPTION")
     private String description;
 
-    @ManyToOne
-    @JoinColumn(name="ID_COLOR")
-    private Color color;
+    @Column(name="COLOR_CODE")
+    private String color;
 
     @Column(name="TERMINAL_STATUS")
     private Boolean terminalStatus;

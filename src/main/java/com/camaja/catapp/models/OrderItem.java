@@ -23,7 +23,7 @@ public class OrderItem {
 
     @ManyToOne
     @JoinColumn(name="ID_ORDER")
-    @JsonBackReference
+    @JsonBackReference("order-items")
     private Order order;
 
     @Size(max=400, message="Description can't have more than 400 characters")

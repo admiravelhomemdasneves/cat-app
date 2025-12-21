@@ -38,7 +38,7 @@ public class Contact {
     private String email;
 
     @OneToMany(mappedBy="contact")
-    @JsonManagedReference
+    @JsonManagedReference("contact-addresses")
     private List<Address> addresses;
 
     @Column(name="FLAG_ACTIVE")

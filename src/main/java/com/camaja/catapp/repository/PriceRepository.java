@@ -1,9 +1,9 @@
 package com.camaja.catapp.repository;
 
-import com.camaja.catapp.models.OrderPriority;
+import com.camaja.catapp.models.Price;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface OrderPriorityRepository extends CrudRepository<OrderPriority, Integer> {
+public interface PriceRepository extends CrudRepository<Price, Integer> {
 }

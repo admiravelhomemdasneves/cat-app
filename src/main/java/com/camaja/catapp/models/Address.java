@@ -1,6 +1,8 @@
 package com.camaja.catapp.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,6 +19,11 @@ public class Address {
     @Column(name="ID_ADDRESS")
     private Long id_address;
 
+    @ManyToOne
+    @JoinColumn(name="CONTACT")
+    @JsonBackReference("contact-addresses")
+    private Contact contact;
+
     @Column(name="STREET")
     private String street;
 
@@ -31,6 +38,9 @@ public class Address {
 
     @Column(name="COUNTRY")
     private String country;
+
+    @Column(name="ADDRESS_TYPE")
+    private String addressType;
 
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;

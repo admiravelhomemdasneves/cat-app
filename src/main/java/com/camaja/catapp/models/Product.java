@@ -18,21 +18,41 @@ public class Product {
     @Column(name="ID_PRODUCT")
     private Long id_product;
 
-    @Size(max=40, message="Name can't have more than 40 characters")
     @Column(name="NAME")
     private String name;
 
-    @Size(max=40, message="Brand can't have more than 40 characters")
     @Column(name="BRAND")
     private String brand;
 
-    @Size(max=40, message="Product Type can't have more than 40 characters")
     @Column(name="PRODUCT_TYPE")
     private String productType;
 
-    @Size(max=400, message="Description can't have more than 400 characters")
+    @Column(name="SIZE")
+    private String size;
+
+    @Column(name="COLOR_CODE")
+    private String color;
+
     @Column(name="DESCRIPTION")
     private String description;
+
+    @Column(name="SKU")
+    private String sku;
+
+    @Column(name="CATALOG_REFERENCE")
+    private String catalogReference;
+
+    @ManyToOne
+    @JoinColumn(name="ID_STORE")
+    private Store store;
+
+    @ManyToOne
+    @JoinColumn(name="ID_PRICE")
+    private Price price;
+
+    @ManyToOne
+    @JoinColumn(name="ID_VAT")
+    private Vat vat;
 
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;

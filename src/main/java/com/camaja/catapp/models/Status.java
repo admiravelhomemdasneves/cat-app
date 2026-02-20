@@ -11,12 +11,12 @@ import java.sql.Timestamp;
 @Getter
 @Setter
 @Entity
-@Table(name="CAT_PRIORITIES", schema="CATAPP")
-public class OrderPriority {
+@Table(name="CAT_STATUS", schema="CATAPP")
+public class Status {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="ID_PRIORITY")
-    private Long id_priority;
+    @Column(name="ID_STATUS")
+    private Long id_status;
 
     @Size(max=40, message="Name can't have more than 40 characters")
     @Column(name="NAME")
@@ -25,6 +25,12 @@ public class OrderPriority {
     @Size(max=400, message="Description can't have more than 400 characters")
     @Column(name="DESCRIPTION")
     private String description;
+
+    @Column(name="COLOR_CODE")
+    private String color;
+
+    @Column(name="TERMINAL_STATUS")
+    private Boolean terminalStatus;
 
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;

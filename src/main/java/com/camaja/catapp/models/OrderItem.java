@@ -15,7 +15,7 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name="CAT_ORDER_PRODUCTS", schema="CATAPP")
-public class OrderProduct {
+public class OrderItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="ID_ORDER_PRODUCT")
@@ -23,7 +23,7 @@ public class OrderProduct {
 
     @ManyToOne
     @JoinColumn(name="ID_ORDER")
-    @JsonBackReference
+    @JsonBackReference("order-items")
     private Order order;
 
     @Size(max=400, message="Description can't have more than 400 characters")

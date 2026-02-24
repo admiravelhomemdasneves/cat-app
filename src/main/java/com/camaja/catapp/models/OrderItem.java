@@ -41,12 +41,6 @@ public class OrderItem {
     @Column(name="QUANTITY")
     private Integer quantity;
 
-    @Column(name="SIZE")
-    private String size;
-
-    @Column(name="COLOR")
-    private String color;
-
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;
 

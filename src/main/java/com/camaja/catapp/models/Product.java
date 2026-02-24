@@ -54,6 +54,9 @@ public class Product {
     @JoinColumn(name="ID_VAT")
     private Vat vat;
 
+    @Column(name = "IMAGE_URL")
+    private String imageUrl;
+
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;
 

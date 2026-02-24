@@ -1,12 +1,14 @@
 package com.camaja.catapp.controllers;
 
-import com.camaja.catapp.models.Contact;
-import com.camaja.catapp.models.PrintingService;
 import com.camaja.catapp.models.Product;
 import com.camaja.catapp.repository.ProductRepository;
+import com.camaja.catapp.services.AzureBlobService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +20,9 @@ import java.util.stream.Collectors;
 public class ProductController {
     @Autowired
     ProductRepository productRepository;
+
+    @Autowired
+    AzureBlobService azureBlobService;
 
     @GetMapping
     Iterable<Product> getActiveProducts() {
@@ -51,6 +56,22 @@ public class ProductController {
         product.setA$date$(new Timestamp(System.currentTimeMillis()));
         productRepository.save(product);
         return product;
+    }
+
+    @PostMapping("/image")
+    public ResponseEntity<?> save(
+            @RequestPart("product") Product product,
+            @RequestPart(value = "image", required = false) MultipartFile file
+    ) throws IOException {
+
+        if (file != null && !file.isEmpty()) {
+            String imageUrl = azureBlobService.uploadFile(file);
+            product.setImageUrl(imageUrl);
+        }
+
+        productRepository.save(product);
+
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping

@@ -19,9 +19,6 @@ public class Order {
     @Column(name="ID_ORDER")
     private Long id_order;
 
-    @Column(name="NAME")
-    private String name;
-
     @Column(name="DESCRIPTION")
     private String description;
 

@@ -30,8 +30,11 @@ public class Product {
     @Column(name="SIZE")
     private String size;
 
+    @Column(name="COLOR_NAME")
+    private String colorName;
+
     @Column(name="COLOR_CODE")
-    private String color;
+    private String colorCode;
 
     @Column(name="DESCRIPTION")
     private String description;

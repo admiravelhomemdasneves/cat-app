@@ -15,4 +15,5 @@ public class ContactDTO {
     private String email;
     private Address shippingAddress;
     private Address billingAddress;
+    private Boolean flagActive;
 }

@@ -26,4 +26,20 @@ public class BackOfficeController {
         ContactDTO contactDTO = backOfficeService.getContactById(id.intValue());
         return ResponseEntity.ok(contactDTO);
     }
+
+    @GetMapping("/contact/inactivate/{id}")
+    public ResponseEntity<ContactDTO> inactivateContactById(@PathVariable Long id) {
+        ContactDTO contactDTO = backOfficeService.getContactById(id.intValue());
+        contactDTO.setFlagActive(false);
+        backOfficeService.saveContactDTO(contactDTO);
+        return ResponseEntity.ok(contactDTO);
+    }
+
+    @PostMapping("/contact")
+    public ResponseEntity<ContactDTO> saveContact(@RequestBody ContactDTO contactDTO) {
+        backOfficeService.saveContactDTO(contactDTO);
+        return ResponseEntity.ok(contactDTO);
+    }
+
+
 }

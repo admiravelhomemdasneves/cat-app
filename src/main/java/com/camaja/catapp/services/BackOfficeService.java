@@ -8,6 +8,8 @@ import com.camaja.catapp.repository.ContactRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -43,6 +45,25 @@ public class BackOfficeService {
         return contactDTO;
     }
 
+    private Contact mapToContact(ContactDTO value) {
+        Contact contact = new Contact();
+        contact.setIdContact(value.getIdContact());
+        contact.setFirstName(value.getFirstName());
+        contact.setLastName(value.getLastName());
+        contact.setNif(value.getNif());
+        contact.setEmail(value.getEmail());
+        contact.setPhoneNumber(value.getPhoneNumber());
+        contact.setA$date$(Timestamp.from(Instant.now()));
+
+        List<Address> addresses = new ArrayList<>();
+        addresses.add(value.getShippingAddress());
+        addresses.add(value.getBillingAddress());
+
+        contact.setAddresses(addresses);
+
+        return contact;
+    }
+
     public ContactDTO getContactById(Integer idContact) {
         return contactRepository.findById(idContact)
                 .map(this::mapToContactDTO)
@@ -53,5 +74,10 @@ public class BackOfficeService {
         List<ContactDTO> contacts = new ArrayList<>();
         contactRepository.findAll().forEach(contact -> contacts.add(mapToContactDTO(contact)));
         return contacts;
+    }
+
+    public void saveContactDTO(ContactDTO contactDTO) {
+        Contact contact = mapToContact(contactDTO);
+        contactRepository.save(contact);
     }
 }

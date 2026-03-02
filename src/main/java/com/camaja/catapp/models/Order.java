@@ -26,7 +26,7 @@ public class Order {
     @JoinColumn(name="ID_STATUS")
     private Status status;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="ID_CONTACT")
     private Contact contact;
 

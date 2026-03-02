@@ -24,9 +24,9 @@ public class BackOfficeService {
 
     private ContactDTO mapToContactDTO(Contact value) {
         ContactDTO contactDTO = new ContactDTO();
-        contactDTO.setIdContact(value.getId_contact());
-        contactDTO.setFirstName(value.getFirst_name());
-        contactDTO.setLastName(value.getLast_name());
+        contactDTO.setIdContact(value.getIdContact());
+        contactDTO.setFirstName(value.getFirstName());
+        contactDTO.setLastName(value.getLastName());
         contactDTO.setNif(value.getNif());
         contactDTO.setEmail(value.getEmail());
         contactDTO.setPhoneNumber(value.getPhoneNumber());

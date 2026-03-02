@@ -19,7 +19,7 @@ public class Address {
     @Column(name="ID_ADDRESS")
     private Long id_address;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="CONTACT")
     @JsonBackReference("contact-addresses")
     private Contact contact;

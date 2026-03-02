@@ -19,14 +19,13 @@ public class Contact {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name="ID_CONTACT")
-    private Long id_contact;
+    private Long idContact;
 
-    @NotNull(message="First name cannot be blank.")
     @Column(name="FIRST_NAME")
-    private String first_name;
+    private String firstName;
 
     @Column(name="LAST_NAME")
-    private String last_name;
+    private String lastName;
 
     @Column(name="NIF")
     private String nif;
@@ -37,7 +36,7 @@ public class Contact {
     @Column(name="EMAIL")
     private String email;
 
-    @OneToMany(mappedBy="contact")
+    @OneToMany(mappedBy="contact", cascade = CascadeType.ALL)
     @JsonManagedReference("contact-addresses")
     private List<Address> addresses;
 

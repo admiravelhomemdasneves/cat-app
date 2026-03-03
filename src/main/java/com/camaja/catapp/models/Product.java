@@ -60,6 +60,9 @@ public class Product {
     @Column(name = "IMAGE_URL")
     private String imageUrl;
 
+    @Column(name = "DEFAULT_SKU")
+    private Boolean defaultSku;
+
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;
 

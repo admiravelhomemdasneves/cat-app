@@ -32,6 +32,7 @@ public class BackOfficeService {
         contactDTO.setNif(value.getNif());
         contactDTO.setEmail(value.getEmail());
         contactDTO.setPhoneNumber(value.getPhoneNumber());
+        contactDTO.setFlagActive(value.getFlagActive());
 
         value.getAddresses().stream()
                 .filter(a -> a.getFlagActive() && "Shipping".equals(a.getAddressType()))
@@ -54,10 +55,17 @@ public class BackOfficeService {
         contact.setEmail(value.getEmail());
         contact.setPhoneNumber(value.getPhoneNumber());
         contact.setA$date$(Timestamp.from(Instant.now()));
+        contact.setFlagActive(value.getFlagActive());
 
         List<Address> addresses = new ArrayList<>();
-        addresses.add(value.getShippingAddress());
-        addresses.add(value.getBillingAddress());
+
+        if (value.getShippingAddress() != null) {
+            addresses.add(value.getShippingAddress());
+        }
+
+        if (value.getBillingAddress() != null) {
+            addresses.add(value.getBillingAddress());
+        }
 
         contact.setAddresses(addresses);
 
@@ -78,6 +86,7 @@ public class BackOfficeService {
 
     public void saveContactDTO(ContactDTO contactDTO) {
         Contact contact = mapToContact(contactDTO);
+        contact.getAddresses().forEach(address -> address.setContact(contact));
         contactRepository.save(contact);
     }
 }

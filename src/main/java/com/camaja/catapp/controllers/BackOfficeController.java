@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequestMapping("/bo")
 @RestController
@@ -16,9 +17,12 @@ public class BackOfficeController {
     BackOfficeService backOfficeService;
 
     @GetMapping("/contact")
-    public ResponseEntity<List<ContactDTO>> getContacts() {
+    public ResponseEntity<List<ContactDTO>> getActiveContacts() {
         List<ContactDTO> contactDTO = backOfficeService.getAllContacts();
-        return ResponseEntity.ok(contactDTO);
+        List<ContactDTO> activeContacts = contactDTO.stream()
+                .filter(contact -> !Boolean.FALSE.equals(contact.getFlagActive()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(activeContacts);
     }
 
     @GetMapping("/contact/{id}")

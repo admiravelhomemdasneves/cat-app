@@ -1,12 +1,13 @@
 package com.camaja.catapp.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 @Getter
 @Setter
@@ -16,7 +17,10 @@ public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="ID_PRODUCT")
-    private Long id_product;
+    private Long idProduct;
+
+    @Column(name="CATALOG_REFERENCE")
+    private String catalogReference;
 
     @Column(name="NAME")
     private String name;
@@ -27,41 +31,12 @@ public class Product {
     @Column(name="PRODUCT_TYPE")
     private String productType;
 
-    @Column(name="SIZE")
-    private String size;
-
-    @Column(name="COLOR_NAME")
-    private String colorName;
-
-    @Column(name="COLOR_CODE")
-    private String colorCode;
-
     @Column(name="DESCRIPTION")
     private String description;
 
-    @Column(name="SKU")
-    private String sku;
-
-    @Column(name="CATALOG_REFERENCE")
-    private String catalogReference;
-
-    @ManyToOne
-    @JoinColumn(name="ID_STORE")
-    private Store store;
-
-    @ManyToOne
-    @JoinColumn(name="ID_PRICE")
-    private Price price;
-
-    @ManyToOne
-    @JoinColumn(name="ID_VAT")
-    private Vat vat;
-
-    @Column(name = "IMAGE_URL")
-    private String imageUrl;
-
-    @Column(name = "DEFAULT_SKU")
-    private Boolean defaultSku;
+    @OneToMany(mappedBy="product", cascade = CascadeType.ALL)
+    @JsonManagedReference("product-parameters")
+    private List<ProductParameters> parameters;
 
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;

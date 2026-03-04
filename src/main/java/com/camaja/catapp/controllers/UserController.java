@@ -1,7 +1,7 @@
 package com.camaja.catapp.controllers;
 
 import com.camaja.catapp.models.User;
-import com.camaja.catapp.services.UserService;
+import com.camaja.catapp.services.domain.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

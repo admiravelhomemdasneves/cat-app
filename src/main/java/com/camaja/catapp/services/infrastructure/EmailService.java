@@ -1,4 +1,4 @@
-package com.camaja.catapp.services;
+package com.camaja.catapp.services.infrastructure;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;

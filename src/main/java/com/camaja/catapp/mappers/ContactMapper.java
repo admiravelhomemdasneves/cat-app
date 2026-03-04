@@ -1,30 +1,19 @@
-package com.camaja.catapp.services;
+package com.camaja.catapp.mappers;
 
 import com.camaja.catapp.dto.ContactDTO;
 import com.camaja.catapp.models.Address;
 import com.camaja.catapp.models.Contact;
-import com.camaja.catapp.repository.AddressRepository;
-import com.camaja.catapp.repository.ContactRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
-@Service
-public class BackOfficeService {
-    @Autowired
-    ContactRepository contactRepository;
-
-    @Autowired
-    AddressRepository addressRepository;
-
-    private ContactDTO mapToContactDTO(Contact value) {
+@Component
+public class ContactMapper {
+    public ContactDTO toDTO(Contact value) {
         ContactDTO contactDTO = new ContactDTO();
         contactDTO.setIdContact(value.getIdContact());
         contactDTO.setFirstName(value.getFirstName());
@@ -46,7 +35,7 @@ public class BackOfficeService {
         return contactDTO;
     }
 
-    private Contact mapToContact(ContactDTO value) {
+    public Contact toEntity(ContactDTO value) {
         Contact contact = new Contact();
         contact.setIdContact(value.getIdContact());
         contact.setFirstName(value.getFirstName());
@@ -70,23 +59,5 @@ public class BackOfficeService {
         contact.setAddresses(addresses);
 
         return contact;
-    }
-
-    public ContactDTO getContactById(Integer idContact) {
-        return contactRepository.findById(idContact)
-                .map(this::mapToContactDTO)
-                .orElse(null); // or throw new EntityNotFoundException(...)
-    }
-
-    public List<ContactDTO> getAllContacts() {
-        List<ContactDTO> contacts = new ArrayList<>();
-        contactRepository.findAll().forEach(contact -> contacts.add(mapToContactDTO(contact)));
-        return contacts;
-    }
-
-    public void saveContactDTO(ContactDTO contactDTO) {
-        Contact contact = mapToContact(contactDTO);
-        contact.getAddresses().forEach(address -> address.setContact(contact));
-        contactRepository.save(contact);
     }
 }

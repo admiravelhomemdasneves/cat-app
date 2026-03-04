@@ -1,4 +1,4 @@
-package com.camaja.catapp.services;
+package com.camaja.catapp.services.infrastructure;
 
 import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;

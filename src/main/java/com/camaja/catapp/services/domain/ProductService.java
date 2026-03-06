@@ -1,7 +1,6 @@
 package com.camaja.catapp.services.domain;
 
 import com.camaja.catapp.models.Product;
-import com.camaja.catapp.repository.ProductOLDRepository;
 import com.camaja.catapp.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

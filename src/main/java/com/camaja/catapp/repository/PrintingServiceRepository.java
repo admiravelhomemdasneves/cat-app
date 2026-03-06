@@ -1,9 +1,9 @@
 package com.camaja.catapp.repository;
 
 import com.camaja.catapp.models.PrintingService;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PrintingServiceRepository extends CrudRepository<PrintingService, Integer> {
+public interface PrintingServiceRepository extends JpaRepository<PrintingService, Integer> {
 }

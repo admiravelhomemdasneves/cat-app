@@ -1,6 +1,7 @@
 package com.camaja.catapp.controllers;
 
 import com.camaja.catapp.dto.ContactDTO;
+import com.camaja.catapp.dto.ProductOptionsDTO;
 import com.camaja.catapp.models.*;
 import com.camaja.catapp.services.domain.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,19 +57,14 @@ public class BackOfficeController {
 
     @GetMapping("/product")
     public ResponseEntity<List<Product>> getActiveProducts() {
-        List<Product> products = productService.getAllProducts();
-        List<Product> activeProducts = products.stream()
-                .filter(product -> !Boolean.FALSE.equals(product.getFlagActive()))
-                .toList();
-
-        activeProducts.forEach(product -> {
-            List<ProductParameters> activeProductParameters = product.getParameters().stream()
-                    .filter(p -> !Boolean.FALSE.equals(p.getFlagActive()))
-                    .toList();
-            product.setParameters(activeProductParameters);
-        });
-
+        List<Product> activeProducts = productService.getActiveProducts();
         return ResponseEntity.ok(activeProducts);
+    }
+
+    @GetMapping("/product/options")
+    public ResponseEntity<List<ProductOptionsDTO>> getProductOptions() {
+        List<ProductOptionsDTO> productOptions = productService.getProductOptions();
+        return ResponseEntity.ok(productOptions);
     }
 
     @GetMapping("/product/inactivate/{id}")

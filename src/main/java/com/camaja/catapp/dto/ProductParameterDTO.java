@@ -7,26 +7,25 @@ import com.camaja.catapp.models.Vat;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
+import java.sql.Timestamp;
 
 @Getter
 @Setter
-public class ProductOptionsDTO {
+public class ProductParameterDTO {
     private Long idProduct;
     private String catalogReference;
     private String name;
     private String brand;
     private String productType;
     private String description;
+    private Long idProductParameter;
+    private Store store;
+    private String sku;
+    private String size;
+    private Color color;
+    private Price price;
+    private Vat vat;
+    private String imageUrl;
+    private Boolean defaultSku;
     private Boolean flagActive;
-    private Long idProductParameterDefault;
-    private Store storeDefault;
-    private String skuDefault;
-    private String sizeDefault;
-    private Color colorDefault;
-    private Price priceDefault;
-    private Vat vatDefault;
-    private String imageUrlDefault;
-    private List<Color> colorOptions;
-    private List<String> sizeOptions;
 }

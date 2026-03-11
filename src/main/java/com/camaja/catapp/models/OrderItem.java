@@ -29,8 +29,8 @@ public class OrderItem {
     private String description;
 
     @ManyToOne
-    @JoinColumn(name="ID_PRODUCT")
-    private ProductOLD productOLD;
+    @JoinColumn(name="ID_PRODUCT_PARAMETER")
+    private ProductParameters product;
 
     @ManyToOne
     @JoinColumn(name="ID_PRINTING_SERVICE")

@@ -1,7 +1,8 @@
 package com.camaja.catapp.controllers;
 
 import com.camaja.catapp.dto.ContactDTO;
-import com.camaja.catapp.dto.ProductOptionsDTO;
+import com.camaja.catapp.dto.OrderDTO;
+import com.camaja.catapp.dto.ProductParameterDTO;
 import com.camaja.catapp.models.*;
 import com.camaja.catapp.services.domain.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ public class BackOfficeController {
     @Autowired VatService vatService;
     @Autowired ColorService colorService;
     @Autowired StoreService storeService;
+    @Autowired OrderService orderService;
 
     // ─── CONTACTS ────────────────────────────────────────────────────────────────
 
@@ -61,10 +63,10 @@ public class BackOfficeController {
         return ResponseEntity.ok(activeProducts);
     }
 
-    @GetMapping("/product/options")
-    public ResponseEntity<List<ProductOptionsDTO>> getProductOptions() {
-        List<ProductOptionsDTO> productOptions = productService.getProductOptions();
-        return ResponseEntity.ok(productOptions);
+    @GetMapping("/product/parameters")
+    public ResponseEntity<List<ProductParameterDTO>> getProductParameters() {
+        List<ProductParameterDTO> productParameters = productService.getActiveProductsParametersDTO();
+        return ResponseEntity.ok(productParameters);
     }
 
     @GetMapping("/product/inactivate/{id}")
@@ -191,5 +193,12 @@ public class BackOfficeController {
         store.setFlagActive(false);
         storeService.saveStore(store);
         return ResponseEntity.ok(store);
+    }
+
+    // ─── ORDERS ───────────────────────────────────────────────────────────────────
+    @GetMapping("/orders")
+    public ResponseEntity<List<OrderDTO>> getActiveOrdersDTO() {
+        List<OrderDTO> activeDTOs = orderService.getActiveOrdersDTO();
+        return ResponseEntity.ok(activeDTOs);
     }
 }

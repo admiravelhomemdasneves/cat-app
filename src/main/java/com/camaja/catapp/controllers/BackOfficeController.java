@@ -2,6 +2,7 @@ package com.camaja.catapp.controllers;
 
 import com.camaja.catapp.dto.ContactDTO;
 import com.camaja.catapp.dto.OrderDTO;
+import com.camaja.catapp.dto.OrderItemDTO;
 import com.camaja.catapp.dto.ProductParameterDTO;
 import com.camaja.catapp.models.*;
 import com.camaja.catapp.services.domain.*;
@@ -200,5 +201,18 @@ public class BackOfficeController {
     public ResponseEntity<List<OrderDTO>> getActiveOrdersDTO() {
         List<OrderDTO> activeDTOs = orderService.getActiveOrdersDTO();
         return ResponseEntity.ok(activeDTOs);
+    }
+
+    @PostMapping("/orders/save")
+    public ResponseEntity<OrderDTO> saveOrderDTO(@RequestBody OrderDTO orderDTO) {
+        orderService.saveOrderDTO(orderDTO);
+        return ResponseEntity.ok(orderDTO);
+    }
+
+    // ─── ORDER ITEMS ──────────────────────────────────────────────────────────────
+    @PostMapping("/orderitems/save")
+    public ResponseEntity<OrderItemDTO> saveOrderItem(@RequestBody OrderItemDTO orderItemDTO) {
+        orderService.saveOrderItemDTO(orderItemDTO);
+        return ResponseEntity.ok(orderItemDTO);
     }
 }

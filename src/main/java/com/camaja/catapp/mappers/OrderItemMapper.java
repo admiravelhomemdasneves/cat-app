@@ -1,7 +1,10 @@
 package com.camaja.catapp.mappers;
 
 import com.camaja.catapp.dto.OrderItemDTO;
+import com.camaja.catapp.models.Order;
 import com.camaja.catapp.models.OrderItem;
+import com.camaja.catapp.models.PrintingService;
+import com.camaja.catapp.models.ProductParameters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -23,5 +26,33 @@ public class OrderItemMapper {
         }
 
         return itemDTO;
+    }
+
+    public OrderItem toEntity(OrderItemDTO value) {
+        OrderItem orderItem = new OrderItem();
+        orderItem.setId_order_product(value.getIdOrderItem());
+        orderItem.setDescription(value.getDescription());
+        orderItem.setQuantity(value.getQuantity());
+        orderItem.setFlagActive(value.getFlagActive());
+
+        if (value.getIdOrder() != null) {
+            Order order = new Order();
+            order.setId_order(value.getIdOrder());
+            orderItem.setOrder(order);
+        }
+
+        if (value.getProduct() != null && value.getProduct().getIdProductParameter() != null) {
+            ProductParameters productParameters = new ProductParameters();
+            productParameters.setIdProductParameter(value.getProduct().getIdProductParameter());
+            orderItem.setProduct(productParameters);
+        }
+
+        if (value.getPrintingService() != null && value.getPrintingService().getId_printing_service() != null) {
+            PrintingService printingService = new PrintingService();
+            printingService.setId_printing_service(value.getPrintingService().getId_printing_service());
+            orderItem.setPrintingService(printingService);
+        }
+
+        return orderItem;
     }
 }

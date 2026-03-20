@@ -72,7 +72,7 @@ public class OrderMapper {
 
         List<OrderItem> orderItemList = new ArrayList<>();
 
-        if (!value.getOrderItems().isEmpty()) {
+        if (value.getOrderItems() != null) {
             value.getOrderItems().forEach(orderItem -> orderItemList.add(orderItemMapper.toEntity(orderItem)));
         }
 

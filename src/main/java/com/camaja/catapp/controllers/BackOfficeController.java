@@ -210,6 +210,18 @@ public class BackOfficeController {
     }
 
     // ─── ORDER ITEMS ──────────────────────────────────────────────────────────────
+    @GetMapping("/orderitems/inactivate/{id}")
+    public ResponseEntity<OrderItem> inactivateOrderItemById(@PathVariable Long id) {
+        OrderItem orderItem = orderService.getOrderItemById(id);
+
+        if (orderItem != null) {
+            orderItem.setFlagActive(false);
+            orderService.saveOrderItem(orderItem);
+        }
+
+        return ResponseEntity.ok(orderItem);
+    }
+
     @PostMapping("/orderitems/save")
     public ResponseEntity<OrderItemDTO> saveOrderItem(@RequestBody OrderItemDTO orderItemDTO) {
         orderService.saveOrderItemDTO(orderItemDTO);

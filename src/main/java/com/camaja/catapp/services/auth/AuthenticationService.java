@@ -1,10 +1,11 @@
-package com.camaja.catapp.services;
+package com.camaja.catapp.services.auth;
 
 import com.camaja.catapp.dto.LoginUserDTO;
 import com.camaja.catapp.dto.RegisterUserDTO;
 import com.camaja.catapp.dto.VerifyUserDTO;
 import com.camaja.catapp.models.User;
 import com.camaja.catapp.repository.UserRepository;
+import com.camaja.catapp.services.infrastructure.EmailService;
 import jakarta.mail.MessagingException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

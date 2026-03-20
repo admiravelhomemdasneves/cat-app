@@ -2,14 +2,12 @@ package com.camaja.catapp.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.sql.Timestamp;
-import java.util.List;
 
 @Getter
 @Setter
@@ -31,8 +29,8 @@ public class OrderItem {
     private String description;
 
     @ManyToOne
-    @JoinColumn(name="ID_PRODUCT")
-    private Product product;
+    @JoinColumn(name="ID_PRODUCT_PARAMETER")
+    private ProductParameters product;
 
     @ManyToOne
     @JoinColumn(name="ID_PRINTING_SERVICE")
@@ -40,12 +38,6 @@ public class OrderItem {
 
     @Column(name="QUANTITY")
     private Integer quantity;
-
-    @Column(name="SIZE")
-    private String size;
-
-    @Column(name="COLOR")
-    private String color;
 
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;

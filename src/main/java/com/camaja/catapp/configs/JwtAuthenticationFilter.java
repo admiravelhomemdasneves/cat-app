@@ -1,6 +1,6 @@
 package com.camaja.catapp.configs;
 
-import com.camaja.catapp.services.JwtService;
+import com.camaja.catapp.services.auth.JwtService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

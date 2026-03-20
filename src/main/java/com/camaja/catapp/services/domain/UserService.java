@@ -1,7 +1,8 @@
-package com.camaja.catapp.services;
+package com.camaja.catapp.services.domain;
 
 import com.camaja.catapp.models.User;
 import com.camaja.catapp.repository.UserRepository;
+import com.camaja.catapp.services.infrastructure.EmailService;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

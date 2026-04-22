@@ -47,10 +47,6 @@ public class ProductOLD {
     private Store store;
 
     @ManyToOne
-    @JoinColumn(name="ID_PRICE")
-    private Price price;
-
-    @ManyToOne
     @JoinColumn(name="ID_VAT")
     private Vat vat;
 

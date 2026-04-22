@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 @Getter
@@ -37,9 +38,8 @@ public class ProductParameters {
     @JoinColumn(name="COLOR")
     private Color color;
 
-    @ManyToOne
-    @JoinColumn(name="ID_PRICE")
-    private Price price;
+    @Column(name = "PRICE", precision = 19, scale = 4)
+    private BigDecimal price;
 
     @ManyToOne
     @JoinColumn(name="ID_VAT")

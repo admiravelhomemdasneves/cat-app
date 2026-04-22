@@ -24,6 +24,7 @@ public class OrderService {
     @Autowired ContactRepository contactRepository;
     @Autowired PriorityRepository priorityRepository;
     @Autowired StatusRepository statusRepository;
+    @Autowired OrderBillRepository orderBillRepository;
 
     @Autowired OrderMapper orderMapper;
     @Autowired OrderItemMapper orderItemMapper;
@@ -71,6 +72,16 @@ public class OrderService {
             order.setContact(contactRepository.getReferenceById(orderDTO.getContact().getIdContact().intValue()));
         } else {
             order.setContact(null);
+        }
+
+        if (order.getOrderBill() != null && order.getOrderBill().getIdOrderBill() != null) {
+            order.setOrderBill(orderBillRepository.getReferenceById(order.getOrderBill().getIdOrderBill().intValue()));
+        }
+
+        if (orderDTO.getDeliveryAddress() == null) {
+            if (orderDTO.getContact() != null && orderDTO.getContact().getShippingAddress() != null) {
+                order.setDelivery_address(orderDTO.getContact().getShippingAddress());
+            }
         }
 
         if (order.getDate_requested() == null) {

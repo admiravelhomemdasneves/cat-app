@@ -39,6 +39,9 @@ public class OrderItem {
     @Column(name="QUANTITY")
     private Integer quantity;
 
+    @Column(name="SERVICE_HOURS")
+    private Integer serviceHours;
+
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;
 

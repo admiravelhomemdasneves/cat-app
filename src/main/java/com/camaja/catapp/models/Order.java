@@ -54,25 +54,8 @@ public class Order {
     @JoinColumn(name="DELIVERY_ADDRESS")
     private Address delivery_address;
 
-    @ManyToOne
-    @JoinColumn(name="BILL_ADDRESS")
-    private Address bill_address;
-
-    @ManyToOne
-    @JoinColumn(name = "ID_PRICE_EXPENSE")
-    private Price expensesPrice;
-
-    @ManyToOne
-    @JoinColumn(name = "ID_PRICE_SERVICE")
-    private Price servicePrice;
-
-    @ManyToOne
-    @JoinColumn(name = "ID_PRICE_TOTAL")
-    private Price totalPrice;
-
-    @ManyToOne
-    @JoinColumn(name = "ID_VAT")
-    private Vat vat;
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+    private OrderBill orderBill;
 
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;

@@ -22,7 +22,6 @@ public class ProductParameterMapper {
         parameterDTO.setSku(parameter.getSku());
         parameterDTO.setSize(parameter.getSize());
         parameterDTO.setColor(parameter.getColor());
-        parameterDTO.setPrice(parameter.getPrice());
         parameterDTO.setVat(parameter.getVat());
         parameterDTO.setImageUrl(parameter.getImageUrl());
         parameterDTO.setDefaultSku(parameter.getDefaultSku());

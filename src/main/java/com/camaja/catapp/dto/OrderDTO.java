@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -24,9 +25,10 @@ public class OrderDTO {
     private Timestamp dateDue;
     private Address deliveryAddress;
     private Address billAddress;
-    private Price expensesPrice;
-    private Price servicePrice;
-    private Price totalPrice;
-    private Vat vat;
+    private BigDecimal vatRate;
+    private BigDecimal vatAmount;
+    private BigDecimal expensesAmount;
+    private BigDecimal serviceAmount;
+    private BigDecimal totalAmount;
     private Boolean flagActive;
 }

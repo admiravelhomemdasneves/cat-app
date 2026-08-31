@@ -33,6 +33,11 @@ public class Status {
     @Column(name="TERMINAL_STATUS")
     private Boolean terminalStatus;
 
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ID_COMPANY")
+    private Company company;
+
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;
 

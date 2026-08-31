@@ -6,6 +6,8 @@ import com.camaja.catapp.models.Vat;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 public class ProductParameterDTO {
@@ -16,6 +18,7 @@ public class ProductParameterDTO {
     private String productType;
     private String description;
     private Long idProductParameter;
+    private BigDecimal price;
     private Store store;
     private String sku;
     private String size;

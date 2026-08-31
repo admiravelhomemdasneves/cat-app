@@ -1,9 +1,13 @@
 package com.camaja.catapp.repository;
 
+import com.camaja.catapp.models.Company;
 import com.camaja.catapp.models.Contact;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
-public interface ContactRepository extends JpaRepository<Contact, Integer> {
+public interface ContactRepository extends JpaRepository<Contact, Long> {
+    List<Contact> findByCompanyAndFlagActive(Company company, Boolean flagActive);
 }

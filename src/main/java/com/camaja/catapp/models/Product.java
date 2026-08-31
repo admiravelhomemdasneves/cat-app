@@ -38,6 +38,11 @@ public class Product {
     @JsonManagedReference("product-parameters")
     private List<ProductParameters> parameters;
 
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ID_COMPANY")
+    private Company company;
+
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;
 

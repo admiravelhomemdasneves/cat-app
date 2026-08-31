@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ProductOLDRepository extends JpaRepository<ProductOLD, Integer> {
+public interface ProductOLDRepository extends JpaRepository<ProductOLD, Long> {
     List<ProductOLD> findByCatalogReference(String catalogReference);
 }

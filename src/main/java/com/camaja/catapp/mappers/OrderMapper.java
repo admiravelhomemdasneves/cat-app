@@ -8,16 +8,17 @@ import com.camaja.catapp.models.Order;
 import com.camaja.catapp.models.OrderBill;
 import com.camaja.catapp.models.OrderItem;
 import jakarta.annotation.Nonnull;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@RequiredArgsConstructor
 @Component
 public class OrderMapper {
-    @Autowired ContactMapper contactMapper;
-    @Autowired OrderItemMapper orderItemMapper;
+    private final ContactMapper contactMapper;
+    private final OrderItemMapper orderItemMapper;
 
     public OrderDTO toDto(Order value) {
         OrderDTO orderDTO = new OrderDTO();

@@ -4,7 +4,7 @@ import com.camaja.catapp.models.Order;
 import com.camaja.catapp.models.OrderItem;
 import com.camaja.catapp.repository.OrderItemRepository;
 import com.camaja.catapp.repository.OrderRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
@@ -12,14 +12,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/orderProduct")
 @CrossOrigin
 public class OrderItemController {
-    @Autowired
-    OrderItemRepository orderItemRepository;
-    @Autowired
-    OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final OrderRepository orderRepository;
 
     @GetMapping
     Iterable<OrderItem> getActiveOrderProduct() {
@@ -29,12 +28,12 @@ public class OrderItemController {
     }
 
     @GetMapping("/{id}")
-    Optional<OrderItem> read(@PathVariable int id) {
+    Optional<OrderItem> read(@PathVariable Long id) {
         return orderItemRepository.findById(id);
     }
 
     @GetMapping("/order/{id}")
-    Iterable<OrderItem> findByOrder(@PathVariable int id) {
+    Iterable<OrderItem> findByOrder(@PathVariable Long id) {
         Optional<Order> order = orderRepository.findById(id);
         return orderItemRepository.findByOrder(order);
     }
@@ -64,7 +63,7 @@ public class OrderItemController {
     }
 
     @GetMapping("/inactivate/{id}")
-    OrderItem inactivateOrderProduct(@PathVariable int id) {
+    OrderItem inactivateOrderProduct(@PathVariable Long id) {
         Optional<OrderItem> orderProductOptional = orderItemRepository.findById(id);
 
         if (orderProductOptional.isPresent()) {

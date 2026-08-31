@@ -40,6 +40,10 @@ public class Contact {
     @JsonManagedReference("contact-addresses")
     private List<Address> addresses;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ID_COMPANY")
+    private Company company;
+
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;
 

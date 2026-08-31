@@ -28,6 +28,11 @@ public class Priority {
     @JoinColumn(name="COLOR")
     private Color color;
 
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ID_COMPANY")
+    private Company company;
+
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;
 

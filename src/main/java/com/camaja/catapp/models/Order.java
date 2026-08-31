@@ -57,6 +57,10 @@ public class Order {
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     private OrderBill orderBill;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ID_COMPANY")
+    private Company company;
+
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;
 

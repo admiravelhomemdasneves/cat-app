@@ -18,6 +18,7 @@ public class ProductParameterMapper {
         parameterDTO.setProductType(product.getProductType());
         parameterDTO.setDescription(product.getDescription());
         parameterDTO.setIdProductParameter(parameter.getIdProductParameter());
+        parameterDTO.setPrice(parameter.getPrice());
         parameterDTO.setStore(parameter.getStore());
         parameterDTO.setSku(parameter.getSku());
         parameterDTO.setSize(parameter.getSize());

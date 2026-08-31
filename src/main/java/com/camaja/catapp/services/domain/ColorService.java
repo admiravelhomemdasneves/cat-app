@@ -2,21 +2,22 @@ package com.camaja.catapp.services.domain;
 
 import com.camaja.catapp.models.Color;
 import com.camaja.catapp.repository.ColorRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@RequiredArgsConstructor
 @Service
 public class ColorService {
-    @Autowired ColorRepository colorRepository;
+    private final ColorRepository colorRepository;
 
     public List<Color> getAllColors() {
         return colorRepository.findAll();
     }
 
     public Color getColorById(Long id) {
-        return colorRepository.findById(id.intValue()).orElse(null);
+        return colorRepository.findById(id).orElse(null);
     }
 
     public void saveColor(Color color) {

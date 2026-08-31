@@ -2,14 +2,15 @@ package com.camaja.catapp.services.domain;
 
 import com.camaja.catapp.models.ProductParameters;
 import com.camaja.catapp.repository.ProductParameterRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@RequiredArgsConstructor
 @Service
 public class ProductParametersService {
-    @Autowired ProductParameterRepository productParameterRepository;
+    private final ProductParameterRepository productParameterRepository;
 
     public List<ProductParameters> getAllProductParameters() {
         return productParameterRepository.findAll();
@@ -20,7 +21,7 @@ public class ProductParametersService {
     }
 
     public ProductParameters getProductParameterById(Long id) {
-        return productParameterRepository.findById(id.intValue()).orElse(null);
+        return productParameterRepository.findById(id).orElse(null);
     }
 
     public void saveProductParameter(ProductParameters productParameter) {

@@ -1,34 +1,38 @@
 package com.camaja.catapp.services.domain;
 
+import com.camaja.catapp.configs.SecurityUtils;
 import com.camaja.catapp.dto.ContactDTO;
 import com.camaja.catapp.mappers.ContactMapper;
 import com.camaja.catapp.models.Contact;
 import com.camaja.catapp.repository.ContactRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
+@RequiredArgsConstructor
 @Service
 public class ContactService {
-    @Autowired ContactRepository contactRepository;
-    @Autowired ContactMapper contactMapper;
+    private final ContactRepository contactRepository;
+    private final ContactMapper contactMapper;
+    private final SecurityUtils securityUtils;
 
-    public ContactDTO getContactById(Integer idContact) {
+    public ContactDTO getContactById(Long idContact) {
         return contactRepository.findById(idContact)
                 .map(contactMapper::toDTO)
-                .orElse(null); // or throw new EntityNotFoundException(...)
+                .orElse(null);
     }
 
     public List<ContactDTO> getAllContacts() {
-        List<ContactDTO> contacts = new ArrayList<>();
-        contactRepository.findAll().forEach(contact -> contacts.add(contactMapper.toDTO(contact)));
-        return contacts;
+        return contactRepository.findByCompanyAndFlagActive(securityUtils.getCurrentCompany(), true)
+                .stream().map(contactMapper::toDTO).toList();
     }
 
+    @Transactional
     public void saveContactDTO(ContactDTO contactDTO) {
         Contact contact = contactMapper.toEntity(contactDTO);
+        contact.setCompany(securityUtils.getCurrentCompany());
         contact.getAddresses().forEach(address -> address.setContact(contact));
         contactRepository.save(contact);
     }

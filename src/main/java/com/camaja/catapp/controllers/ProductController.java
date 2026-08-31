@@ -3,7 +3,7 @@ package com.camaja.catapp.controllers;
 import com.camaja.catapp.models.ProductOLD;
 import com.camaja.catapp.repository.ProductOLDRepository;
 import com.camaja.catapp.services.infrastructure.AzureBlobService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,15 +14,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/product")
 @CrossOrigin
 public class ProductController {
-    @Autowired
-    ProductOLDRepository productOLDRepository;
-
-    @Autowired
-    AzureBlobService azureBlobService;
+    private final ProductOLDRepository productOLDRepository;
+    private final AzureBlobService azureBlobService;
 
     @GetMapping
     Iterable<ProductOLD> getActiveProducts() {
@@ -32,12 +30,12 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    Optional<ProductOLD> read(@PathVariable int id) {
+    Optional<ProductOLD> read(@PathVariable Long id) {
         return productOLDRepository.findById(id);
     }
 
     @GetMapping("/inactivate/{id}")
-    ProductOLD inactivateProduct(@PathVariable int id) {
+    ProductOLD inactivateProduct(@PathVariable Long id) {
         Optional<ProductOLD> productOptional = productOLDRepository.findById(id);
 
         if (productOptional.isPresent()) {
@@ -82,7 +80,7 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    Optional<ProductOLD> delete(@PathVariable int id) {
+    Optional<ProductOLD> delete(@PathVariable Long id) {
         productOLDRepository.deleteById(id);
         return read(id);
     }

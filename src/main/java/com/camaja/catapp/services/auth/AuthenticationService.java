@@ -3,40 +3,69 @@ package com.camaja.catapp.services.auth;
 import com.camaja.catapp.dto.LoginUserDTO;
 import com.camaja.catapp.dto.RegisterUserDTO;
 import com.camaja.catapp.dto.VerifyUserDTO;
+import com.camaja.catapp.models.AccessLevel;
+import com.camaja.catapp.models.Company;
 import com.camaja.catapp.models.User;
+import com.camaja.catapp.repository.AccessLevelRepository;
+import com.camaja.catapp.repository.CompanyRepository;
 import com.camaja.catapp.repository.UserRepository;
 import com.camaja.catapp.services.infrastructure.EmailService;
 import jakarta.mail.MessagingException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Random;
 
+@Slf4j
 @Service
 public class AuthenticationService {
+
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private final UserRepository userRepository;
+    private final CompanyRepository companyRepository;
+    private final AccessLevelRepository accessLevelRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
 
     public AuthenticationService(
             UserRepository userRepository,
+            CompanyRepository companyRepository,
+            AccessLevelRepository accessLevelRepository,
             AuthenticationManager authenticationManager,
             PasswordEncoder passwordEncoder,
             EmailService emailService
     ) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
+        this.companyRepository = companyRepository;
+        this.accessLevelRepository = accessLevelRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
     }
 
     public User signup(RegisterUserDTO input) {
+        if (userRepository.findByEmail(input.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("Email already in use");
+        }
         User user = new User(input.getUsername(), input.getEmail(), passwordEncoder.encode(input.getPassword()));
+
+        if (input.getCompanyId() != null) {
+            Company company = companyRepository.findById(input.getCompanyId())
+                    .orElseThrow(() -> new IllegalArgumentException("Company not found: " + input.getCompanyId()));
+            user.setCompany(company);
+        }
+        if (input.getAccessLevelId() != null) {
+            AccessLevel accessLevel = accessLevelRepository.findById(input.getAccessLevelId())
+                    .orElseThrow(() -> new IllegalArgumentException("Access level not found: " + input.getAccessLevelId()));
+            user.setAccessLevel(accessLevel);
+        }
+
         user.setVerificationCode(generateVerificationCode());
         user.setVerificationExpiration(LocalDateTime.now().plusMinutes(15));
         user.setEnabled(false);
@@ -118,13 +147,11 @@ public class AuthenticationService {
         try {
             emailService.sendVerificationEmail(user.getEmail(), subject, htmlMessage);
         } catch (MessagingException e) {
-            // Handle email sending exception
-            e.printStackTrace();
+            log.warn("Failed to send verification email to {}: {}", user.getEmail(), e.getMessage());
         }
     }
     private String generateVerificationCode() {
-        Random random = new Random();
-        int code = random.nextInt(900000) + 100000;
+        int code = SECURE_RANDOM.nextInt(900000) + 100000;
         return String.valueOf(code);
     }
 }

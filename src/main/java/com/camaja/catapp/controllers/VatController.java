@@ -2,7 +2,7 @@ package com.camaja.catapp.controllers;
 
 import com.camaja.catapp.models.Vat;
 import com.camaja.catapp.repository.VatRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/vat")
 @CrossOrigin
 public class VatController {
-    @Autowired
-    VatRepository vatRepository;
+    private final VatRepository vatRepository;
 
     @GetMapping
     Iterable<Vat> getActiveVats() {
@@ -25,12 +25,12 @@ public class VatController {
     }
 
     @GetMapping("/{id}")
-    Optional<Vat> read(@PathVariable int id) {
+    Optional<Vat> read(@PathVariable Long id) {
         return vatRepository.findById(id);
     }
 
     @GetMapping("/inactivate/{id}")
-    Vat inactivateVat(@PathVariable int id) {
+    Vat inactivateVat(@PathVariable Long id) {
         Optional<Vat> vatOptional = vatRepository.findById(id);
 
         if (vatOptional.isPresent()) {
@@ -59,7 +59,7 @@ public class VatController {
     }
 
     @DeleteMapping("/{id}")
-    Optional<Vat> delete(@PathVariable int id) {
+    Optional<Vat> delete(@PathVariable Long id) {
         vatRepository.deleteById(id);
         return read(id);
     }

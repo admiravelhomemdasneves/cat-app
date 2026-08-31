@@ -1,11 +1,11 @@
 package com.camaja.catapp.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
@@ -27,49 +27,51 @@ public class User implements UserDetails {
     @Column(unique = true, nullable = false)
     private String email;
 
+    @JsonIgnore
     @Column(unique = true, nullable = false)
     private String password;
 
+    @JsonIgnore
     @Column(name = "VERIFICATION_CODE")
     private String verificationCode;
 
+    @JsonIgnore
     @Column(name = "VERIFICATION_EXPIRATION")
     private LocalDateTime verificationExpiration;
 
     private boolean enabled;
 
-    //constructor for creating an unverified user
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "ID_COMPANY")
+    private Company company;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "ID_ACCESS_LEVEL")
+    private AccessLevel accessLevel;
+
     public User(String username, String email, String password) {
         this.username = username;
         this.email = email;
         this.password = password;
     }
-    //default constructor
-    public User(){
-    }
+
+    public User() {}
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        if (accessLevel == null) return List.of();
+        return List.of(new SimpleGrantedAuthority(accessLevel.getName()));
     }
 
     @Override
-    public boolean isAccountNonExpired(){
-        return true;
-    }
+    public boolean isAccountNonExpired() { return true; }
 
     @Override
-    public boolean isAccountNonLocked(){
-        return true;
-    }
+    public boolean isAccountNonLocked() { return true; }
 
     @Override
-    public boolean isCredentialsNonExpired(){
-        return true;
-    }
+    public boolean isCredentialsNonExpired() { return true; }
 
     @Override
-    public boolean isEnabled(){
-        return enabled;
-    }
+    public boolean isEnabled() { return enabled; }
 }

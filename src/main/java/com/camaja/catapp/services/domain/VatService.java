@@ -2,21 +2,22 @@ package com.camaja.catapp.services.domain;
 
 import com.camaja.catapp.models.Vat;
 import com.camaja.catapp.repository.VatRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@RequiredArgsConstructor
 @Service
 public class VatService {
-    @Autowired VatRepository vatRepository;
+    private final VatRepository vatRepository;
 
     public List<Vat> getAllVats() {
         return vatRepository.findAll();
     }
 
     public Vat getVatById(Long id) {
-        return vatRepository.findById(id.intValue()).orElse(null);
+        return vatRepository.findById(id).orElse(null);
     }
 
     public void saveVat(Vat vat) {

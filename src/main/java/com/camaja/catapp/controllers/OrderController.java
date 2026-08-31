@@ -2,7 +2,7 @@ package com.camaja.catapp.controllers;
 
 import com.camaja.catapp.models.*;
 import com.camaja.catapp.repository.OrderRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/order")
 @CrossOrigin
 public class OrderController {
-    @Autowired
-    OrderRepository orderRepository;
+    private final OrderRepository orderRepository;
 
     @GetMapping
     Iterable<Order> getActiveOrders() {
@@ -25,12 +25,12 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    Optional<Order> read(@PathVariable int id) {
+    Optional<Order> read(@PathVariable Long id) {
         return orderRepository.findById(id);
     }
 
     @GetMapping("/inactivate/{id}")
-    Order inactivateOrder(@PathVariable int id) {
+    Order inactivateOrder(@PathVariable Long id) {
         Optional<Order> orderOptional = orderRepository.findById(id);
 
         if (orderOptional.isPresent()) {
@@ -70,7 +70,7 @@ public class OrderController {
     }
 
     @DeleteMapping("/{id}")
-    Optional<Order> delete(@PathVariable int id) {
+    Optional<Order> delete(@PathVariable Long id) {
         orderRepository.deleteById(id);
         return read(id);
     }

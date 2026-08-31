@@ -2,19 +2,19 @@ package com.camaja.catapp.controllers;
 
 import com.camaja.catapp.models.Store;
 import com.camaja.catapp.repository.StoreRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/stores")
 @CrossOrigin
 public class StoreController {
-    @Autowired
-    StoreRepository storeRepository;
+    private final StoreRepository storeRepository;
 
     @GetMapping
     Iterable<Store> getActiveOrderStores() {
@@ -24,12 +24,12 @@ public class StoreController {
     }
 
     @GetMapping("/{id}")
-    Optional<Store> read(@PathVariable int id) {
+    Optional<Store> read(@PathVariable Long id) {
         return storeRepository.findById(id);
     }
 
     @GetMapping("/inactivate/{id}")
-    Store inactivateOrderStore(@PathVariable int id) {
+    Store inactivateOrderStore(@PathVariable Long id) {
         Optional<Store> orderStoreOptional = storeRepository.findById(id);
 
         if (orderStoreOptional.isPresent()) {
@@ -49,7 +49,7 @@ public class StoreController {
     }
 
     @DeleteMapping("/{id}")
-    Optional<Store> delete(@PathVariable int id) {
+    Optional<Store> delete(@PathVariable Long id) {
         storeRepository.deleteById(id);
         return read(id);
     }

@@ -1,9 +1,9 @@
 package com.camaja.catapp.controllers;
 
-import com.camaja.catapp.models.Address;
 import com.camaja.catapp.models.Contact;
 import com.camaja.catapp.repository.ContactRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
@@ -11,12 +11,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/contact")
 @CrossOrigin
 public class ContactController {
-    @Autowired
-    ContactRepository contactRepository;
+    private final ContactRepository contactRepository;
 
     @GetMapping
     Iterable<Contact> getActiveContacts() {
@@ -26,12 +27,12 @@ public class ContactController {
     }
 
     @GetMapping("/{id}")
-    Optional<Contact> read(@PathVariable int id) {
+    Optional<Contact> read(@PathVariable Long id) {
         return contactRepository.findById(id);
     }
 
     @GetMapping("/inactivate/{id}")
-    Contact inactivateContact(@PathVariable int id) {
+    Contact inactivateContact(@PathVariable Long id) {
         Optional<Contact> contactOptional = contactRepository.findById(id);
 
         if (contactOptional.isPresent()) {
@@ -60,11 +61,11 @@ public class ContactController {
     }
 
     @DeleteMapping("/{id}")
-    Optional<Contact> delete(@PathVariable int id) {
+    Optional<Contact> delete(@PathVariable Long id) {
         try {
             contactRepository.deleteById(id);
         } catch (Exception e) {
-            System.out.println(e);
+            log.warn("Failed to delete contact {}: {}", id, e.getMessage());
         }
 
         return read(id);

@@ -1,9 +1,8 @@
 package com.camaja.catapp.controllers;
 
 import com.camaja.catapp.models.Address;
-import com.camaja.catapp.models.Contact;
 import com.camaja.catapp.repository.AddressRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
@@ -11,12 +10,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/address")
 @CrossOrigin
 public class AddressController {
-    @Autowired
-    AddressRepository addressRepository;
+    private final AddressRepository addressRepository;
 
     @GetMapping
     Iterable<Address> getActiveAdresses() {
@@ -26,12 +25,12 @@ public class AddressController {
     }
 
     @GetMapping("/{id}")
-    Optional<Address> read(@PathVariable int id) {
+    Optional<Address> read(@PathVariable Long id) {
         return addressRepository.findById(id);
     }
 
     @GetMapping("/inactivate/{id}")
-    Address inactivateAddress(@PathVariable int id) {
+    Address inactivateAddress(@PathVariable Long id) {
         Optional<Address> addressOptional = addressRepository.findById(id);
 
         if (addressOptional.isPresent()) {
@@ -60,7 +59,7 @@ public class AddressController {
     }
 
     @DeleteMapping("/{id}")
-    Optional<Address> delete(@PathVariable int id) {
+    Optional<Address> delete(@PathVariable Long id) {
         addressRepository.deleteById(id);
         return read(id);
     }

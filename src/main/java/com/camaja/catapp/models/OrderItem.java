@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 @Getter
@@ -41,6 +42,12 @@ public class OrderItem {
 
     @Column(name="SERVICE_HOURS")
     private Integer serviceHours;
+
+    @Column(name = "UNIT_PRICE", precision = 19, scale = 4)
+    private BigDecimal unitPrice;
+
+    @Column(name = "SERVICE_HOURLY_RATE", precision = 19, scale = 4)
+    private BigDecimal serviceHourlyRate;
 
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;

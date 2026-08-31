@@ -4,6 +4,8 @@ import com.camaja.catapp.models.PrintingService;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 public class OrderItemDTO {
@@ -12,6 +14,9 @@ public class OrderItemDTO {
     private String description;
     private PrintingService printingService;
     private Integer quantity;
+    private Integer serviceHours;
+    private BigDecimal unitPrice;
+    private BigDecimal serviceHourlyRate;
     private ProductParameterDTO product;
     private Boolean flagActive;
 }

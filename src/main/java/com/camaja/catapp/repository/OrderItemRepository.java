@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface OrderItemRepository extends JpaRepository<OrderItem, Integer> {
+public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     Iterable<OrderItem> findByOrder(Optional<Order> order);
 }

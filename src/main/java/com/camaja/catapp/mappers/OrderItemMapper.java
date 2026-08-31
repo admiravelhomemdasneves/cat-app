@@ -5,12 +5,13 @@ import com.camaja.catapp.models.Order;
 import com.camaja.catapp.models.OrderItem;
 import com.camaja.catapp.models.PrintingService;
 import com.camaja.catapp.models.ProductParameters;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+@RequiredArgsConstructor
 @Component
 public class OrderItemMapper {
-    @Autowired ProductParameterMapper productParameterMapper;
+    private final ProductParameterMapper productParameterMapper;
 
     public OrderItemDTO toDto(OrderItem value) {
         OrderItemDTO itemDTO = new OrderItemDTO();
@@ -19,6 +20,9 @@ public class OrderItemMapper {
         itemDTO.setDescription(value.getDescription());
         itemDTO.setPrintingService(value.getPrintingService());
         itemDTO.setQuantity(value.getQuantity());
+        itemDTO.setServiceHours(value.getServiceHours());
+        itemDTO.setUnitPrice(value.getUnitPrice());
+        itemDTO.setServiceHourlyRate(value.getServiceHourlyRate());
         itemDTO.setFlagActive(value.getFlagActive());
 
         if (value.getProduct() != null) {
@@ -33,6 +37,9 @@ public class OrderItemMapper {
         orderItem.setId_order_product(value.getIdOrderItem());
         orderItem.setDescription(value.getDescription());
         orderItem.setQuantity(value.getQuantity());
+        orderItem.setServiceHours(value.getServiceHours());
+        orderItem.setUnitPrice(value.getUnitPrice());
+        orderItem.setServiceHourlyRate(value.getServiceHourlyRate());
         orderItem.setFlagActive(value.getFlagActive());
 
         if (value.getIdOrder() != null) {

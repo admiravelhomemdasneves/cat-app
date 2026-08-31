@@ -1,36 +1,35 @@
 package com.camaja.catapp.controllers;
 
+import com.camaja.catapp.configs.SecurityUtils;
 import com.camaja.catapp.models.PrintingService;
 import com.camaja.catapp.repository.PrintingServiceRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/printingService")
 @CrossOrigin
 public class PrintingServiceController {
-    @Autowired
-    PrintingServiceRepository printingServiceRepository;
+    private final PrintingServiceRepository printingServiceRepository;
+    private final SecurityUtils securityUtils;
 
     @GetMapping
-    Iterable<PrintingService> getActivePrintingServices() {
-        List<PrintingService> printingServices = (List<PrintingService>) printingServiceRepository.findAll();
-        List<PrintingService> activePrintingServices = printingServices.stream().filter(printingService -> printingService.getFlagActive() == null || printingService.getFlagActive() == true).collect(Collectors.toList());
-        return activePrintingServices;
+    List<PrintingService> getActivePrintingServices() {
+        return printingServiceRepository.findVisibleByCompany(securityUtils.getCurrentCompany());
     }
 
     @GetMapping("/{id}")
-    Optional<PrintingService> read(@PathVariable int id) {
+    Optional<PrintingService> read(@PathVariable Long id) {
         return printingServiceRepository.findById(id);
     }
 
     @GetMapping("/inactivate/{id}")
-    PrintingService inactivatePrintingService(@PathVariable int id) {
+    PrintingService inactivatePrintingService(@PathVariable Long id) {
         Optional<PrintingService> printingServiceOptional = printingServiceRepository.findById(id);
 
         if (printingServiceOptional.isPresent()) {
@@ -46,6 +45,9 @@ public class PrintingServiceController {
 
     @PostMapping
     PrintingService save(@RequestBody PrintingService printingService) {
+        if (!securityUtils.isAdmin()) {
+            printingService.setCompany(securityUtils.getCurrentCompany());
+        }
         printingService.setA$user$(new Timestamp(System.currentTimeMillis()));
         printingServiceRepository.save(printingService);
         return printingService;
@@ -53,13 +55,16 @@ public class PrintingServiceController {
 
     @PutMapping
     PrintingService update(@RequestBody PrintingService printingService) {
+        if (!securityUtils.isAdmin()) {
+            printingService.setCompany(securityUtils.getCurrentCompany());
+        }
         printingService.setA$user$(new Timestamp(System.currentTimeMillis()));
         printingServiceRepository.save(printingService);
         return printingService;
     }
 
     @DeleteMapping("/{id}")
-    Optional<PrintingService> delete(@PathVariable int id) {
+    Optional<PrintingService> delete(@PathVariable Long id) {
         printingServiceRepository.deleteById(id);
         return read(id);
     }

@@ -24,9 +24,8 @@ public class Priority {
     @Column(name="DESCRIPTION")
     private String description;
 
-    @ManyToOne
-    @JoinColumn(name="COLOR")
-    private Color color;
+    @Column(name="COLOR_CODE")
+    private String colorCode;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)

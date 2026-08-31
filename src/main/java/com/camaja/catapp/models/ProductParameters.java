@@ -34,9 +34,11 @@ public class ProductParameters {
     @Column(name="SIZE")
     private String size;
 
-    @ManyToOne
-    @JoinColumn(name="COLOR")
-    private Color color;
+    @Column(name="COLOR_NAME")
+    private String colorName;
+
+    @Column(name="COLOR_CODE")
+    private String colorCode;
 
     @Column(name = "PRICE", precision = 19, scale = 4)
     private BigDecimal price;

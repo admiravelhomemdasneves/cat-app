@@ -29,10 +29,6 @@ public class ProductOLD {
     @Column(name="SIZE")
     private String size;
 
-    @ManyToOne
-    @JoinColumn(name="COLOR")
-    private Color color;
-
     @Column(name="DESCRIPTION")
     private String description;
 

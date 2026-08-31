@@ -1,6 +1,5 @@
 package com.camaja.catapp.dto;
 
-import com.camaja.catapp.models.Color;
 import com.camaja.catapp.models.Store;
 import com.camaja.catapp.models.Vat;
 import lombok.Getter;
@@ -22,7 +21,8 @@ public class ProductParameterDTO {
     private Store store;
     private String sku;
     private String size;
-    private Color color;
+    private String colorName;
+    private String colorCode;
     private Vat vat;
     private String imageUrl;
     private Boolean defaultSku;

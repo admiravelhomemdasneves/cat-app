@@ -29,7 +29,6 @@ public class BackOfficeController {
     private final ProductService productService;
     private final ProductParametersService productParametersService;
     private final VatService vatService;
-    private final ColorService colorService;
     private final StoreService storeService;
     private final OrderService orderService;
     private final BillingService billingService;
@@ -167,30 +166,6 @@ public class BackOfficeController {
         return ResponseEntity.ok(vat);
     }
 
-    // ─── COLORS ───────────────────────────────────────────────────────────────────
-
-    @GetMapping("/color")
-    public ResponseEntity<List<Color>> getActiveColors() {
-        List<Color> colors = colorService.getAllColors();
-        List<Color> activeColors = colors.stream()
-                .filter(c -> !Boolean.FALSE.equals(c.getFlagActive()))
-                .toList();
-        return ResponseEntity.ok(activeColors);
-    }
-
-    @PostMapping("/color/save")
-    public ResponseEntity<Color> saveColor(@RequestBody Color color) {
-        colorService.saveColor(color);
-        return ResponseEntity.ok(color);
-    }
-
-    @GetMapping("/color/inactivate/{id}")
-    public ResponseEntity<Color> inactivateColorById(@PathVariable Long id) {
-        Color color = colorService.getColorById(id);
-        color.setFlagActive(false);
-        colorService.saveColor(color);
-        return ResponseEntity.ok(color);
-    }
 
     // ─── STORES ───────────────────────────────────────────────────────────────────
 

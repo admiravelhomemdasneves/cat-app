@@ -22,7 +22,7 @@ public class OrderItemMapper {
         itemDTO.setQuantity(value.getQuantity());
         itemDTO.setServiceHours(value.getServiceHours());
         itemDTO.setUnitPrice(value.getUnitPrice());
-        itemDTO.setServiceHourlyRate(value.getServiceHourlyRate());
+        itemDTO.setServiceRate(value.getServiceRate());
         itemDTO.setFlagActive(value.getFlagActive());
 
         if (value.getProduct() != null) {
@@ -39,7 +39,7 @@ public class OrderItemMapper {
         orderItem.setQuantity(value.getQuantity());
         orderItem.setServiceHours(value.getServiceHours());
         orderItem.setUnitPrice(value.getUnitPrice());
-        orderItem.setServiceHourlyRate(value.getServiceHourlyRate());
+        orderItem.setServiceRate(value.getServiceRate());
         orderItem.setFlagActive(value.getFlagActive());
 
         if (value.getIdOrder() != null) {

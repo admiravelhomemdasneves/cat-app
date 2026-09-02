@@ -46,8 +46,8 @@ public class OrderItem {
     @Column(name = "UNIT_PRICE", precision = 19, scale = 4)
     private BigDecimal unitPrice;
 
-    @Column(name = "SERVICE_HOURLY_RATE", precision = 19, scale = 4)
-    private BigDecimal serviceHourlyRate;
+    @Column(name = "SERVICE_RATE", precision = 19, scale = 4)
+    private BigDecimal serviceRate;
 
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;

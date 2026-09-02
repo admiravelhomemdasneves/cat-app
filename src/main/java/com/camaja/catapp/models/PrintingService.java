@@ -27,8 +27,11 @@ public class PrintingService {
     @Column(name="DESCRIPTION")
     private String description;
 
-    @Column(name = "HOURLY_RATE", precision = 19, scale = 4)
-    private BigDecimal hourlyRate;
+    @Column(name = "RATE", precision = 19, scale = 4)
+    private BigDecimal rate;
+
+    @Column(name = "RATE_TYPE")
+    private String rateType;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)

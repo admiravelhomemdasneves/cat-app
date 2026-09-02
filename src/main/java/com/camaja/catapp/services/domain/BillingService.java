@@ -37,14 +37,6 @@ public class BillingService {
                         if (pp.getPrice() != null) orderItem.setUnitPrice(pp.getPrice());
                     });
         }
-        if (orderItem.getServiceHourlyRate() == null
-                && dto.getPrintingService() != null
-                && dto.getPrintingService().getId_printing_service() != null) {
-            printingServiceRepository.findById(dto.getPrintingService().getId_printing_service())
-                    .ifPresent(ps -> {
-                        if (ps.getHourlyRate() != null) orderItem.setServiceHourlyRate(ps.getHourlyRate());
-                    });
-        }
     }
 
     @Transactional
@@ -69,10 +61,6 @@ public class BillingService {
 
             if (item.getUnitPrice() != null) {
                 expensesAmount = expensesAmount.add(item.getUnitPrice().multiply(BigDecimal.valueOf(qty)));
-            }
-            if (item.getServiceHourlyRate() != null && hours > 0) {
-                serviceAmount = serviceAmount.add(
-                        item.getServiceHourlyRate().multiply(BigDecimal.valueOf(hours)));
             }
         }
 

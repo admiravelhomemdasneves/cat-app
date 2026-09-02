@@ -16,7 +16,7 @@ public class OrderItemDTO {
     private Integer quantity;
     private Integer serviceHours;
     private BigDecimal unitPrice;
-    private BigDecimal serviceHourlyRate;
+    private BigDecimal serviceRate;
     private ProductParameterDTO product;
     private Boolean flagActive;
 }

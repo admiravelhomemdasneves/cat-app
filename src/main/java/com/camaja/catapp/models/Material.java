@@ -6,8 +6,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.SQLRestriction;
 
-import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -34,9 +34,6 @@ public class Material {
     @Column(name="CATEGORY")
     private String category;
 
-    @Column(name="COST", precision=19, scale=4)
-    private BigDecimal cost;
-
     @Size(max=200, message="Seller can't have more than 200 characters")
     @Column(name="SELLER")
     private String seller;
@@ -48,12 +45,21 @@ public class Material {
     @Column(name="PARENT_ID")
     private Long parentId;
 
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "COST_PRICE_ID")
+    private PriceQuantity costPrice;
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "RETAIL_PRICE_ID")
+    private PriceQuantity retailPrice;
+
     @JsonManagedReference("material-images")
     @OneToMany(mappedBy="material", cascade=CascadeType.ALL)
+    @SQLRestriction("FLAG_ACTIVE = 1")
     private List<MaterialImage> images;
 
     @JsonManagedReference("material-tags")
-    @OneToMany(mappedBy="material", cascade=CascadeType.ALL)
+    @OneToMany(mappedBy="material", cascade=CascadeType.ALL, orphanRemoval=true)
     private List<MaterialTag> tags;
 
     @JsonIgnore

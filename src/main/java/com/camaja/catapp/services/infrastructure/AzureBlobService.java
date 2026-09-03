@@ -3,6 +3,7 @@ package com.camaja.catapp.services.infrastructure;
 import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobContainerClientBuilder;
+import com.azure.storage.blob.models.PublicAccessType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,6 +40,7 @@ public class AzureBlobService {
         if (!containerClient.exists()) {
             containerClient.create();
         }
+        containerClient.setAccessPolicy(PublicAccessType.BLOB, null);
 
         String originalFilename = file.getOriginalFilename() != null ? file.getOriginalFilename() : "file";
         String blobName = UUID.randomUUID() + "-" + originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
@@ -47,6 +49,15 @@ public class AzureBlobService {
         blobClient.upload(file.getInputStream(), file.getSize(), true);
 
         return blobClient.getBlobUrl();
+    }
+
+    public void deleteFile(String blobUrl) {
+        String blobName = blobUrl.substring(blobUrl.lastIndexOf('/') + 1);
+        BlobContainerClient containerClient = new BlobContainerClientBuilder()
+                .connectionString(connectionString)
+                .containerName(containerName)
+                .buildClient();
+        containerClient.getBlobClient(blobName).deleteIfExists();
     }
 
     private void validateFile(MultipartFile file) {

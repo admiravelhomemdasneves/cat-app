@@ -1,8 +1,6 @@
 package com.camaja.catapp.dto;
 
 import com.camaja.catapp.models.*;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,7 +16,7 @@ public class OrderDTO {
     private Status status;
     private ContactDTO contact;
     private Priority priority;
-    private List<OrderItemDTO> orderItems;
+    private List<OrderItemDTO> orderContents;
     private Timestamp dateRequested;
     private Timestamp dateStatus;
     private Timestamp dateConclusion;

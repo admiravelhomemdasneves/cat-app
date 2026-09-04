@@ -1,6 +1,6 @@
 package com.camaja.catapp.services.domain;
 
-import com.camaja.catapp.dto.OrderItemDTO;
+import com.camaja.catapp.dto.OrderProductDTO;
 import com.camaja.catapp.dto.ProductParameterDTO;
 import com.camaja.catapp.models.*;
 import com.camaja.catapp.repository.OrderBillRepository;
@@ -37,7 +37,7 @@ class BillingServiceTest {
     @Test
     void recalculate_withNoActiveItems_setsBillTotalsToZero() {
         Order order = new Order();
-        order.setOrderItems(List.of());
+        order.setOrderProducts(List.of());
         OrderBill existingBill = new OrderBill();
         existingBill.setVatRate(new BigDecimal("0.23"));
         order.setOrderBill(existingBill);
@@ -55,13 +55,13 @@ class BillingServiceTest {
 
     @Test
     void recalculate_withInactiveItems_treatsThemAsEmpty() {
-        OrderItem inactive = new OrderItem();
+        OrderProduct inactive = new OrderProduct();
         inactive.setFlagActive(false);
         inactive.setUnitPrice(new BigDecimal("100.00"));
         inactive.setQuantity(1);
 
         Order order = new Order();
-        order.setOrderItems(List.of(inactive));
+        order.setOrderProducts(List.of(inactive));
         order.setOrderBill(billWithVat("0.00"));
 
         billingService.recalculate(order);
@@ -73,18 +73,18 @@ class BillingServiceTest {
 
     @Test
     void recalculate_withExpensesAndServiceItems_computesTotalsCorrectly() {
-        OrderItem expenseItem = new OrderItem();
+        OrderProduct expenseItem = new OrderProduct();
         expenseItem.setFlagActive(true);
         expenseItem.setUnitPrice(new BigDecimal("10.00"));
         expenseItem.setQuantity(2);
 
-        OrderItem serviceItem = new OrderItem();
+        OrderProduct serviceItem = new OrderProduct();
         serviceItem.setFlagActive(true);
         serviceItem.setServiceHourlyRate(new BigDecimal("25.00"));
         serviceItem.setServiceHours(3);
 
         Order order = new Order();
-        order.setOrderItems(List.of(expenseItem, serviceItem));
+        order.setOrderProducts(List.of(expenseItem, serviceItem));
         order.setOrderBill(billWithVat("0.23"));
 
         billingService.recalculate(order);
@@ -101,7 +101,7 @@ class BillingServiceTest {
     @Test
     void recalculate_withNullOrderBill_createsNewBill() {
         Order order = new Order();
-        order.setOrderItems(List.of());
+        order.setOrderProducts(List.of());
         order.setOrderBill(null);
 
         billingService.recalculate(order);
@@ -115,13 +115,13 @@ class BillingServiceTest {
 
     @Test
     void snapshotPrices_whenUnitPriceNull_copiesPriceFromProductParameter() {
-        OrderItem item = new OrderItem();
+        OrderProduct item = new OrderProduct();
         item.setUnitPrice(null);
 
         ProductParameterDTO productDTO = new ProductParameterDTO();
         productDTO.setIdProductParameter(5L);
 
-        OrderItemDTO dto = new OrderItemDTO();
+        OrderProductDTO dto = new OrderProductDTO();
         dto.setProduct(productDTO);
 
         ProductParameters pp = new ProductParameters();
@@ -135,13 +135,13 @@ class BillingServiceTest {
 
     @Test
     void snapshotPrices_whenUnitPriceAlreadySet_doesNotOverwrite() {
-        OrderItem item = new OrderItem();
+        OrderProduct item = new OrderProduct();
         item.setUnitPrice(new BigDecimal("9.99"));
 
         ProductParameterDTO productDTO = new ProductParameterDTO();
         productDTO.setIdProductParameter(5L);
 
-        OrderItemDTO dto = new OrderItemDTO();
+        OrderProductDTO dto = new OrderProductDTO();
         dto.setProduct(productDTO);
 
         billingService.snapshotPrices(item, dto);
@@ -152,14 +152,14 @@ class BillingServiceTest {
 
     @Test
     void snapshotPrices_whenServiceHourlyRateNull_copiesRateFromPrintingService() {
-        OrderItem item = new OrderItem();
+        OrderProduct item = new OrderProduct();
         item.setServiceHourlyRate(null);
 
         PrintingService ps = new PrintingService();
         ps.setId_printing_service(3L);
         ps.setHourlyRate(new BigDecimal("50.00"));
 
-        OrderItemDTO dto = new OrderItemDTO();
+        OrderProductDTO dto = new OrderProductDTO();
         dto.setPrintingService(ps);
 
         when(printingServiceRepository.findById(3L)).thenReturn(Optional.of(ps));
@@ -171,13 +171,13 @@ class BillingServiceTest {
 
     @Test
     void snapshotPrices_whenServiceHourlyRateAlreadySet_doesNotOverwrite() {
-        OrderItem item = new OrderItem();
+        OrderProduct item = new OrderProduct();
         item.setServiceHourlyRate(new BigDecimal("30.00"));
 
         PrintingService ps = new PrintingService();
         ps.setId_printing_service(3L);
 
-        OrderItemDTO dto = new OrderItemDTO();
+        OrderProductDTO dto = new OrderProductDTO();
         dto.setPrintingService(ps);
 
         billingService.snapshotPrices(item, dto);

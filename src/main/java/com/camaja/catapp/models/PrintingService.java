@@ -41,6 +41,9 @@ public class PrintingService {
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;
 
+    public BigDecimal getHourlyRate() { return rate; }
+    public void setHourlyRate(BigDecimal v) { this.rate = v; }
+
     @JsonIgnore
     @Column(name="A$DATE$")
     private Timestamp a$user$;

@@ -3,11 +3,14 @@ package com.camaja.catapp.services.domain;
 import com.camaja.catapp.configs.SecurityUtils;
 import com.camaja.catapp.dto.OrderDTO;
 import com.camaja.catapp.dto.OrderItemDTO;
+import com.camaja.catapp.dto.OrderProductDTO;
 import com.camaja.catapp.mappers.OrderItemMapper;
 import com.camaja.catapp.mappers.OrderMapper;
+import com.camaja.catapp.mappers.OrderProductMapper;
 import com.camaja.catapp.models.Company;
 import com.camaja.catapp.models.Order;
 import com.camaja.catapp.models.OrderItem;
+import com.camaja.catapp.models.OrderProduct;
 import com.camaja.catapp.repository.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,6 +29,7 @@ import static org.mockito.Mockito.*;
 class OrderServiceTest {
 
     @Mock OrderRepository orderRepository;
+    @Mock OrderProductRepository orderProductRepository;
     @Mock OrderItemRepository orderItemRepository;
     @Mock ProductParameterRepository productParameterRepository;
     @Mock PrintingServiceRepository printingServiceRepository;
@@ -34,16 +38,46 @@ class OrderServiceTest {
     @Mock StatusRepository statusRepository;
     @Mock OrderBillRepository orderBillRepository;
     @Mock OrderMapper orderMapper;
+    @Mock OrderProductMapper orderProductMapper;
     @Mock OrderItemMapper orderItemMapper;
     @Mock BillingService billingService;
     @Mock SecurityUtils securityUtils;
 
     @InjectMocks OrderService orderService;
 
-    // ─── saveOrderItemDTO ─────────────────────────────────────────────────────
+    // ─── saveOrderProductDTO ──────────────────────────────────────────────────
 
     @Test
-    void saveOrderItemDTO_withOrderId_callsRecalculateAfterSave() {
+    void saveOrderProductDTO_withOrderId_callsRecalculateAfterSave() {
+        OrderProduct item = new OrderProduct();
+        when(orderProductMapper.toEntity(any(OrderProductDTO.class))).thenReturn(item);
+        when(orderRepository.getReferenceById(10L)).thenReturn(new Order());
+
+        OrderProductDTO dto = new OrderProductDTO();
+        dto.setIdOrder(10L);
+
+        orderService.saveOrderProductDTO(dto);
+
+        verify(billingService).recalculateForOrder(10L);
+    }
+
+    @Test
+    void saveOrderProductDTO_withNullOrderId_doesNotCallRecalculate() {
+        OrderProduct item = new OrderProduct();
+        when(orderProductMapper.toEntity(any(OrderProductDTO.class))).thenReturn(item);
+
+        OrderProductDTO dto = new OrderProductDTO();
+        dto.setIdOrder(null);
+
+        orderService.saveOrderProductDTO(dto);
+
+        verify(billingService, never()).recalculateForOrder(any());
+    }
+
+    // ─── saveOrderItemDTO (order contents) ────────────────────────────────────
+
+    @Test
+    void saveOrderItemDTO_savesWithoutRecalculate() {
         OrderItem item = new OrderItem();
         when(orderItemMapper.toEntity(any(OrderItemDTO.class))).thenReturn(item);
         when(orderRepository.getReferenceById(10L)).thenReturn(new Order());
@@ -53,19 +87,7 @@ class OrderServiceTest {
 
         orderService.saveOrderItemDTO(dto);
 
-        verify(billingService).recalculateForOrder(10L);
-    }
-
-    @Test
-    void saveOrderItemDTO_withNullOrderId_doesNotCallRecalculate() {
-        OrderItem item = new OrderItem();
-        when(orderItemMapper.toEntity(any(OrderItemDTO.class))).thenReturn(item);
-
-        OrderItemDTO dto = new OrderItemDTO();
-        dto.setIdOrder(null);
-
-        orderService.saveOrderItemDTO(dto);
-
+        verify(orderItemRepository).save(item);
         verify(billingService, never()).recalculateForOrder(any());
     }
 
@@ -78,7 +100,7 @@ class OrderServiceTest {
         when(securityUtils.getCurrentCompany()).thenReturn(company);
 
         Order order = new Order();
-        order.setOrderItems(List.of());
+        order.setOrderProducts(List.of());
         when(orderMapper.toEntity(any(OrderDTO.class))).thenReturn(order);
 
         orderService.saveOrderDTO(new OrderDTO());

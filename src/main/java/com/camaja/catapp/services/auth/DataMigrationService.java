@@ -10,7 +10,6 @@ import com.camaja.catapp.repository.CompanyRepository;
 import com.camaja.catapp.repository.RolePagePermissionRepository;
 import com.camaja.catapp.repository.ContactRepository;
 import com.camaja.catapp.repository.OrderRepository;
-import com.camaja.catapp.repository.ProductRepository;
 import com.camaja.catapp.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +33,6 @@ public class DataMigrationService {
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
     private final ContactRepository contactRepository;
-    private final ProductRepository productRepository;
 
     @PostConstruct
     @Transactional
@@ -125,10 +123,6 @@ public class DataMigrationService {
         contactRepository.findAll().stream()
                 .filter(c -> c.getCompany() == null)
                 .forEach(c -> { c.setCompany(company); contactRepository.save(c); });
-
-        productRepository.findAll().stream()
-                .filter(p -> p.getCompany() == null)
-                .forEach(p -> { p.setCompany(company); productRepository.save(p); });
 
         userRepository.findAll().stream()
                 .filter(u -> u.getCompany() == null)

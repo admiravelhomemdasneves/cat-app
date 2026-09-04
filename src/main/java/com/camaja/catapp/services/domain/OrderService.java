@@ -8,6 +8,7 @@ import com.camaja.catapp.mappers.OrderMapper;
 import com.camaja.catapp.models.Order;
 import com.camaja.catapp.models.OrderItem;
 import com.camaja.catapp.repository.*;
+import com.camaja.catapp.models.Material;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +22,7 @@ import java.util.List;
 public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
-    private final ProductParameterRepository productParameterRepository;
+    private final MaterialRepository materialRepository;
     private final PrintingServiceRepository printingServiceRepository;
     private final ContactRepository contactRepository;
     private final PriorityRepository priorityRepository;
@@ -29,14 +30,16 @@ public class OrderService {
     private final OrderBillRepository orderBillRepository;
     private final OrderMapper orderMapper;
     private final OrderItemMapper orderItemMapper;
-    private final BillingService billingService;
     private final SecurityUtils securityUtils;
 
     public List<Order> getActiveOrders() {
         List<Order> activeOrders = orderRepository.findByCompanyAndFlagActive(securityUtils.getCurrentCompany(), true);
-        activeOrders.forEach(order -> order.setOrderItems(
-                order.getOrderItems().stream().filter(item -> Boolean.TRUE.equals(item.getFlagActive())).toList()
-        ));
+        activeOrders.forEach(order -> {
+            order.setOrderContents(
+                    order.getOrderContents() == null ? List.of()
+                    : order.getOrderContents().stream().filter(item -> Boolean.TRUE.equals(item.getFlagActive())).toList()
+            );
+        });
         return activeOrders;
     }
 
@@ -102,33 +105,70 @@ public class OrderService {
     }
 
     @Transactional
-    public void saveOrderItemDTO(OrderItemDTO orderItemDTO) {
-        OrderItem orderItem = orderItemMapper.toEntity(orderItemDTO);
+    public OrderItemDTO calculateOrderItemPrice(Long id) {
+        OrderItem item = orderItemRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("OrderItem not found: " + id));
 
-        if (orderItemDTO.getIdOrder() != null) {
-            orderItem.setOrder(orderRepository.getReferenceById(orderItemDTO.getIdOrder()));
+        java.math.BigDecimal price = java.math.BigDecimal.ZERO;
+        java.math.BigDecimal expenses = null;
+
+        // Material retail price × quantity
+        if (item.getMaterial() != null
+                && item.getMaterial().getRetailPrice() != null
+                && item.getMaterial().getRetailPrice().getPriceValue() != null) {
+            java.math.BigDecimal retailUnit = item.getMaterial().getRetailPrice().getPriceValue();
+            java.math.BigDecimal qty = item.getQuantity() != null ? item.getQuantity() : java.math.BigDecimal.ONE;
+            price = price.add(retailUnit.multiply(qty));
+        }
+
+        // Service rate component
+        if (item.getService() != null && item.getServiceRate() != null) {
+            String rateType = item.getService().getRateType();
+            if ("HOURLY".equals(rateType) && item.getServiceHours() != null) {
+                price = price.add(item.getServiceRate().multiply(item.getServiceHours()));
+            } else if ("PER_UNIT".equals(rateType) && item.getQuantity() != null) {
+                price = price.add(item.getServiceRate().multiply(item.getQuantity()));
+            }
+        }
+
+        // Expenses = material cost price
+        if (item.getMaterial() != null
+                && item.getMaterial().getCostPrice() != null
+                && item.getMaterial().getCostPrice().getPriceValue() != null) {
+            expenses = item.getMaterial().getCostPrice().getPriceValue();
+        }
+
+        item.setPrice(price);
+        item.setExpenses(expenses);
+        item.setA$date$(Timestamp.from(Instant.now()));
+        orderItemRepository.save(item);
+
+        return orderItemMapper.toDto(item);
+    }
+
+    @Transactional
+    public void saveOrderItemDTO(OrderItemDTO dto) {
+        OrderItem orderItem = orderItemMapper.toEntity(dto);
+
+        if (dto.getIdOrder() != null) {
+            orderItem.setOrder(orderRepository.getReferenceById(dto.getIdOrder()));
         } else {
             orderItem.setOrder(null);
         }
 
-        if (orderItemDTO.getProduct() != null && orderItemDTO.getProduct().getIdProductParameter() != null) {
-            orderItem.setProduct(productParameterRepository.getReferenceById(orderItemDTO.getProduct().getIdProductParameter()));
+        if (dto.getService() != null && dto.getService().getId_printing_service() != null) {
+            orderItem.setService(printingServiceRepository.getReferenceById(dto.getService().getId_printing_service()));
         } else {
-            orderItem.setProduct(null);
+            orderItem.setService(null);
         }
 
-        if (orderItemDTO.getPrintingService() != null && orderItemDTO.getPrintingService().getId_printing_service() != null) {
-            orderItem.setPrintingService(printingServiceRepository.getReferenceById(orderItemDTO.getPrintingService().getId_printing_service()));
+        if (dto.getMaterial() != null && dto.getMaterial().getIdMaterial() != null) {
+            orderItem.setMaterial(materialRepository.getReferenceById(dto.getMaterial().getIdMaterial()));
         } else {
-            orderItem.setPrintingService(null);
+            orderItem.setMaterial(null);
         }
 
-        billingService.snapshotPrices(orderItem, orderItemDTO);
         orderItem.setA$date$(Timestamp.from(Instant.now()));
         orderItemRepository.save(orderItem);
-
-        if (orderItemDTO.getIdOrder() != null) {
-            billingService.recalculateForOrder(orderItemDTO.getIdOrder());
-        }
     }
 }

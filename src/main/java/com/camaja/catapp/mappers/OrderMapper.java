@@ -3,15 +3,11 @@ package com.camaja.catapp.mappers;
 import com.camaja.catapp.dto.ContactDTO;
 import com.camaja.catapp.dto.OrderDTO;
 import com.camaja.catapp.dto.OrderItemDTO;
-import com.camaja.catapp.models.Contact;
-import com.camaja.catapp.models.Order;
-import com.camaja.catapp.models.OrderBill;
-import com.camaja.catapp.models.OrderItem;
+import com.camaja.catapp.models.*;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -48,8 +44,9 @@ public class OrderMapper {
             orderDTO.setTotalAmount(orderBill.getTotalAmount());
         }
 
-        List<OrderItemDTO> orderItemDTOS = value.getOrderItems().stream().map(orderItemMapper::toDto).toList();
-        orderDTO.setOrderItems(orderItemDTOS);
+        List<OrderItemDTO> orderItemDTOs = value.getOrderContents() == null ? List.of()
+                : value.getOrderContents().stream().map(orderItemMapper::toDto).toList();
+        orderDTO.setOrderContents(orderItemDTOs);
 
         return orderDTO;
     }
@@ -74,14 +71,6 @@ public class OrderMapper {
             Contact contact = contactMapper.toEntity(value.getContact());
             order.setContact(contact);
         }
-
-        List<OrderItem> orderItemList = new ArrayList<>();
-
-        if (value.getOrderItems() != null) {
-            value.getOrderItems().forEach(orderItem -> orderItemList.add(orderItemMapper.toEntity(orderItem)));
-        }
-
-        order.setOrderItems(orderItemList);
 
         return order;
     }

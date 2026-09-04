@@ -4,7 +4,6 @@ import com.camaja.catapp.dto.ContactDTO;
 import com.camaja.catapp.dto.OrderDTO;
 import com.camaja.catapp.dto.OrderItemDTO;
 import com.camaja.catapp.dto.PermissionRequestDTO;
-import com.camaja.catapp.dto.ProductParameterDTO;
 import com.camaja.catapp.dto.RegisterUserDTO;
 import com.camaja.catapp.dto.UserDTO;
 import com.camaja.catapp.models.*;
@@ -26,8 +25,6 @@ import java.util.stream.Collectors;
 @CrossOrigin
 public class BackOfficeController {
     private final ContactService contactService;
-    private final ProductService productService;
-    private final ProductParametersService productParametersService;
     private final VatService vatService;
     private final StoreService storeService;
     private final OrderService orderService;
@@ -69,76 +66,6 @@ public class BackOfficeController {
     public ResponseEntity<ContactDTO> saveContact(@RequestBody ContactDTO contactDTO) {
         contactService.saveContactDTO(contactDTO);
         return ResponseEntity.ok(contactDTO);
-    }
-
-    // ─── PRODUCTS ─────────────────────────────────────────────────────────────────
-
-    @GetMapping("/product")
-    public ResponseEntity<List<Product>> getActiveProducts() {
-        List<Product> activeProducts = productService.getActiveProducts();
-        return ResponseEntity.ok(activeProducts);
-    }
-
-    @GetMapping("/product/parameters")
-    public ResponseEntity<List<ProductParameterDTO>> getProductParameters() {
-        List<ProductParameterDTO> productParameters = productService.getActiveProductsParametersDTO();
-        return ResponseEntity.ok(productParameters);
-    }
-
-    @GetMapping("/product/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
-        return ResponseEntity.ok(productService.getProductById(id));
-    }
-
-    @GetMapping("/product/inactivate/{id}")
-    public ResponseEntity<Product> inactivateProductById(@PathVariable Long id) {
-        Product product = productService.getProductById(id);
-        product.setFlagActive(false);
-        productService.saveProduct(product);
-        return ResponseEntity.ok(product);
-    }
-
-    @PostMapping("/product/save")
-    public ResponseEntity<Product> saveProduct(@RequestBody Product product) {
-        product.getParameters().forEach(productParameter -> productParameter.setProduct(product));
-        productService.saveProduct(product);
-        return ResponseEntity.ok(product);
-    }
-
-    // ─── PRODUCT PARAMETERS ───────────────────────────────────────────────────────
-
-    @GetMapping("/product-parameter")
-    public ResponseEntity<List<ProductParameters>> getActiveProductParameters() {
-        List<ProductParameters> parameters = productParametersService.getAllProductParameters();
-        List<ProductParameters> activeParameters = parameters.stream()
-                .filter(p -> !Boolean.FALSE.equals(p.getFlagActive()))
-                .toList();
-        return ResponseEntity.ok(activeParameters);
-    }
-
-    @GetMapping("/product-parameter/product/{idProduct}")
-    public ResponseEntity<List<ProductParameters>> getProductParametersByProduct(@PathVariable Long idProduct) {
-        List<ProductParameters> parameters = productParametersService.getProductParametersByProduct(idProduct);
-        List<ProductParameters> activeParameters = parameters.stream()
-                .filter(p -> !Boolean.FALSE.equals(p.getFlagActive()))
-                .toList();
-        return ResponseEntity.ok(activeParameters);
-    }
-
-    @PostMapping("/product-parameter/save/{idProduct}")
-    public ResponseEntity<ProductParameters> saveProductParameter(@PathVariable Long idProduct, @RequestBody ProductParameters productParameter) {
-        Product product = productService.getProductById(idProduct);
-        productParameter.setProduct(product);
-        productParametersService.saveProductParameter(productParameter);
-        return ResponseEntity.ok(productParameter);
-    }
-
-    @GetMapping("/product-parameter/inactivate/{id}")
-    public ResponseEntity<ProductParameters> inactivateProductParameterById(@PathVariable Long id) {
-        ProductParameters parameter = productParametersService.getProductParameterById(id);
-        parameter.setFlagActive(false);
-        productParametersService.saveProductParameter(parameter);
-        return ResponseEntity.ok(parameter);
     }
 
     // ─── VATS ─────────────────────────────────────────────────────────────────────
@@ -216,7 +143,12 @@ public class BackOfficeController {
         return ResponseEntity.ok(orderDTO);
     }
 
-    // ─── ORDER ITEMS ──────────────────────────────────────────────────────────────
+    // ─── ORDER ITEMS (contents) ───────────────────────────────────────────────────
+    @PostMapping("/orderitems/{id}/calculate-price")
+    public ResponseEntity<OrderItemDTO> calculateOrderItemPrice(@PathVariable Long id) {
+        return ResponseEntity.ok(orderService.calculateOrderItemPrice(id));
+    }
+
     @GetMapping("/orderitems/inactivate/{id}")
     public ResponseEntity<OrderItem> inactivateOrderItemById(@PathVariable Long id) {
         OrderItem orderItem = orderService.getOrderItemById(id);
@@ -230,9 +162,9 @@ public class BackOfficeController {
     }
 
     @PostMapping("/orderitems/save")
-    public ResponseEntity<OrderItemDTO> saveOrderItem(@RequestBody OrderItemDTO orderItemDTO) {
-        orderService.saveOrderItemDTO(orderItemDTO);
-        return ResponseEntity.ok(orderItemDTO);
+    public ResponseEntity<OrderItemDTO> saveOrderItem(@RequestBody OrderItemDTO dto) {
+        orderService.saveOrderItemDTO(dto);
+        return ResponseEntity.ok(dto);
     }
 
     // ─── COMPANIES ────────────────────────────────────────────────────────────────

@@ -22,11 +22,10 @@ public class OrderDTO {
     private Timestamp dateConclusion;
     private Timestamp dateDue;
     private Address deliveryAddress;
-    private Address billAddress;
+    private Long idOrderBill;
+    private String billAddress;
+    private String nif;
     private BigDecimal vatRate;
-    private BigDecimal vatAmount;
-    private BigDecimal expensesAmount;
-    private BigDecimal serviceAmount;
     private BigDecimal totalAmount;
     private Boolean flagActive;
 }

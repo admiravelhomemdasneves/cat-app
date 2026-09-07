@@ -23,24 +23,17 @@ public class OrderBill {
     @JoinColumn(name = "ID_ORDER")
     private Order order;
 
-    @ManyToOne
-    @JoinColumn(name="BILL_ADDRESS")
-    private Address bill_address;
+    @Column(name = "BILL_ADDRESS", length = 500)
+    private String bill_address;
 
     @Column(name = "VAT_RATE", precision = 5, scale = 4)
     private BigDecimal vatRate;
 
-    @Column(name = "VAT_AMOUNT", precision = 19, scale = 4)
-    private BigDecimal vatAmount;
-
-    @Column(name = "EXPENSES_AMOUNT", precision = 19, scale = 4)
-    private BigDecimal expensesAmount;
-
-    @Column(name = "SERVICE_AMOUNT", precision = 19, scale = 4)
-    private BigDecimal serviceAmount;
-
     @Column(name = "TOTAL_AMOUNT", precision = 19, scale = 4)
     private BigDecimal totalAmount;
+
+    @Column(name="NIF")
+    private String nif;
 
     @JsonIgnore
     @Column(name="A$DATE$")

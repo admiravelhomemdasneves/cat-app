@@ -6,16 +6,19 @@ import com.camaja.catapp.dto.OrderItemDTO;
 import com.camaja.catapp.mappers.OrderItemMapper;
 import com.camaja.catapp.mappers.OrderMapper;
 import com.camaja.catapp.models.Order;
+import com.camaja.catapp.models.OrderBill;
 import com.camaja.catapp.models.OrderItem;
 import com.camaja.catapp.repository.*;
-import com.camaja.catapp.models.Material;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 @Service
@@ -31,6 +34,7 @@ public class OrderService {
     private final OrderMapper orderMapper;
     private final OrderItemMapper orderItemMapper;
     private final SecurityUtils securityUtils;
+    private final BillingService billingService;
 
     public List<Order> getActiveOrders() {
         List<Order> activeOrders = orderRepository.findByCompanyAndFlagActive(securityUtils.getCurrentCompany(), true);
@@ -64,7 +68,12 @@ public class OrderService {
 
     @Transactional
     public void saveOrderDTO(OrderDTO orderDTO) {
+        boolean isNewOrder = orderDTO.getIdOrder() == null;
         Order order = orderMapper.toEntity(orderDTO);
+
+        // Detach the bill from the Order entity — managed separately below to avoid
+        // the cascade replacing updated values with an unmodified proxy.
+        order.setOrderBill(null);
 
         if (orderDTO.getPriority() != null && orderDTO.getPriority().getId_priority() != null) {
             order.setPriority(priorityRepository.getReferenceById(orderDTO.getPriority().getId_priority()));
@@ -84,10 +93,6 @@ public class OrderService {
             order.setContact(null);
         }
 
-        if (order.getOrderBill() != null && order.getOrderBill().getIdOrderBill() != null) {
-            order.setOrderBill(orderBillRepository.getReferenceById(order.getOrderBill().getIdOrderBill()));
-        }
-
         if (orderDTO.getDeliveryAddress() == null) {
             if (orderDTO.getContact() != null && orderDTO.getContact().getShippingAddress() != null) {
                 order.setDelivery_address(orderDTO.getContact().getShippingAddress());
@@ -101,7 +106,35 @@ public class OrderService {
         order.setCompany(securityUtils.getCurrentCompany());
         order.setDate_status(Timestamp.from(Instant.now()));
         order.setA$date$(Timestamp.from(Instant.now()));
-        orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+
+        // Manage OrderBill separately so ID_ORDER and field values are always correct.
+        if (isNewOrder) {
+            OrderBill bill = new OrderBill();
+            bill.setOrder(savedOrder);
+            orderBillRepository.save(bill);
+        } else {
+            OrderBill bill = orderBillRepository.findByOrder(savedOrder)
+                .orElseGet(() -> { OrderBill b = new OrderBill(); b.setOrder(savedOrder); return b; });
+
+            boolean vatRateChanged = !Objects.equals(bill.getVatRate(), orderDTO.getVatRate());
+            bill.setNif(orderDTO.getNif());
+            bill.setVatRate(orderDTO.getVatRate());
+            bill.setBill_address(orderDTO.getBillAddress());
+
+            if (vatRateChanged) {
+                BigDecimal priceSum = orderItemRepository.findByOrderAndFlagActive(savedOrder, true).stream()
+                    .filter(item -> item.getPrice() != null)
+                    .map(OrderItem::getPrice)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+                BigDecimal vat = bill.getVatRate() != null ? bill.getVatRate() : BigDecimal.ZERO;
+                bill.setTotalAmount(priceSum.multiply(BigDecimal.ONE.add(vat)).setScale(4, RoundingMode.HALF_UP));
+            } else {
+                bill.setTotalAmount(orderDTO.getTotalAmount());
+            }
+
+            orderBillRepository.save(bill);
+        }
     }
 
     @Transactional
@@ -109,15 +142,15 @@ public class OrderService {
         OrderItem item = orderItemRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("OrderItem not found: " + id));
 
-        java.math.BigDecimal price = java.math.BigDecimal.ZERO;
-        java.math.BigDecimal expenses = null;
+        BigDecimal price = BigDecimal.ZERO;
+        BigDecimal expenses = null;
 
         // Material retail price × quantity
         if (item.getMaterial() != null
                 && item.getMaterial().getRetailPrice() != null
                 && item.getMaterial().getRetailPrice().getPriceValue() != null) {
-            java.math.BigDecimal retailUnit = item.getMaterial().getRetailPrice().getPriceValue();
-            java.math.BigDecimal qty = item.getQuantity() != null ? item.getQuantity() : java.math.BigDecimal.ONE;
+            BigDecimal retailUnit = item.getMaterial().getRetailPrice().getPriceValue();
+            BigDecimal qty = item.getQuantity() != null ? item.getQuantity() : BigDecimal.ONE;
             price = price.add(retailUnit.multiply(qty));
         }
 
@@ -142,6 +175,10 @@ public class OrderService {
         item.setExpenses(expenses);
         item.setA$date$(Timestamp.from(Instant.now()));
         orderItemRepository.save(item);
+
+        if (item.getOrder() != null) {
+            billingService.recalculateForOrder(item.getOrder().getId_order());
+        }
 
         return orderItemMapper.toDto(item);
     }
@@ -170,5 +207,9 @@ public class OrderService {
 
         orderItem.setA$date$(Timestamp.from(Instant.now()));
         orderItemRepository.save(orderItem);
+
+        if (dto.getIdOrder() != null) {
+            billingService.recalculateForOrder(dto.getIdOrder());
+        }
     }
 }

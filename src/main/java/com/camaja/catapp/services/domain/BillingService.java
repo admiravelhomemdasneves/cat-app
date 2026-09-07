@@ -2,6 +2,7 @@ package com.camaja.catapp.services.domain;
 
 import com.camaja.catapp.models.Order;
 import com.camaja.catapp.models.OrderBill;
+import com.camaja.catapp.models.OrderItem;
 import com.camaja.catapp.repository.OrderBillRepository;
 import com.camaja.catapp.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,15 +36,14 @@ public class BillingService {
             bill.setOrder(order);
         }
 
-        BigDecimal expensesAmount = bill.getExpensesAmount() != null ? bill.getExpensesAmount() : BigDecimal.ZERO;
-        BigDecimal serviceAmount = bill.getServiceAmount() != null ? bill.getServiceAmount() : BigDecimal.ZERO;
-        BigDecimal subtotal = expensesAmount.add(serviceAmount);
+        BigDecimal priceSum = order.getOrderContents() == null ? BigDecimal.ZERO
+                : order.getOrderContents().stream()
+                        .filter(item -> Boolean.TRUE.equals(item.getFlagActive()) && item.getPrice() != null)
+                        .map(OrderItem::getPrice)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal vatRate = bill.getVatRate() != null ? bill.getVatRate() : BigDecimal.ZERO;
-        BigDecimal vatAmount = subtotal.multiply(vatRate).setScale(4, RoundingMode.HALF_UP);
-
-        bill.setVatAmount(vatAmount);
-        bill.setTotalAmount(subtotal.add(vatAmount).setScale(4, RoundingMode.HALF_UP));
+        bill.setTotalAmount(priceSum.multiply(BigDecimal.ONE.add(vatRate)).setScale(4, RoundingMode.HALF_UP));
         bill.setA$date$(Timestamp.from(Instant.now()));
 
         orderBillRepository.save(bill);

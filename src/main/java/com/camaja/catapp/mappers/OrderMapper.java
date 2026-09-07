@@ -36,11 +36,10 @@ public class OrderMapper {
 
         if (value.getOrderBill() != null) {
             OrderBill orderBill = value.getOrderBill();
+            orderDTO.setIdOrderBill(orderBill.getIdOrderBill());
             orderDTO.setBillAddress(orderBill.getBill_address());
+            orderDTO.setNif(orderBill.getNif());
             orderDTO.setVatRate(orderBill.getVatRate());
-            orderDTO.setVatAmount(orderBill.getVatAmount());
-            orderDTO.setExpensesAmount(orderBill.getExpensesAmount());
-            orderDTO.setServiceAmount(orderBill.getServiceAmount());
             orderDTO.setTotalAmount(orderBill.getTotalAmount());
         }
 
@@ -64,8 +63,9 @@ public class OrderMapper {
         order.setDelivery_address(value.getDeliveryAddress());
         order.setFlagActive(value.getFlagActive());
 
-        OrderBill orderBill = getOrderBill(value);
-        order.setOrderBill(orderBill);
+        if (hasBillingData(value)) {
+            order.setOrderBill(getOrderBill(value));
+        }
 
         if (value.getContact() != null) {
             Contact contact = contactMapper.toEntity(value.getContact());
@@ -78,12 +78,15 @@ public class OrderMapper {
     @Nonnull
     private static OrderBill getOrderBill(OrderDTO value) {
         OrderBill orderBill = new OrderBill();
+        orderBill.setIdOrderBill(value.getIdOrderBill());
         if (value.getBillAddress() != null) orderBill.setBill_address(value.getBillAddress());
         if (value.getVatRate() != null) orderBill.setVatRate(value.getVatRate());
-        if (value.getVatAmount() != null) orderBill.setVatAmount(value.getVatAmount());
-        if (value.getExpensesAmount() != null) orderBill.setExpensesAmount(value.getExpensesAmount());
-        if (value.getServiceAmount() != null) orderBill.setServiceAmount(value.getServiceAmount());
         if (value.getTotalAmount() != null) orderBill.setTotalAmount(value.getTotalAmount());
         return orderBill;
+    }
+
+    private static boolean hasBillingData(OrderDTO dto) {
+        return dto.getIdOrderBill() != null || dto.getVatRate() != null
+                || dto.getTotalAmount() != null || dto.getBillAddress() != null;
     }
 }

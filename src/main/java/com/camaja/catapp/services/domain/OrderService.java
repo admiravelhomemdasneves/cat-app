@@ -1,10 +1,12 @@
 package com.camaja.catapp.services.domain;
 
-import com.camaja.catapp.configs.SecurityUtils;
+import com.camaja.catapp.configs.TenantAccess;
 import com.camaja.catapp.dto.OrderDTO;
 import com.camaja.catapp.dto.OrderItemDTO;
 import com.camaja.catapp.mappers.OrderItemMapper;
 import com.camaja.catapp.mappers.OrderMapper;
+import com.camaja.catapp.models.Address;
+import com.camaja.catapp.models.Company;
 import com.camaja.catapp.models.Order;
 import com.camaja.catapp.models.OrderBill;
 import com.camaja.catapp.models.OrderItem;
@@ -31,13 +33,14 @@ public class OrderService {
     private final PriorityRepository priorityRepository;
     private final StatusRepository statusRepository;
     private final OrderBillRepository orderBillRepository;
+    private final AddressRepository addressRepository;
     private final OrderMapper orderMapper;
     private final OrderItemMapper orderItemMapper;
-    private final SecurityUtils securityUtils;
+    private final TenantAccess tenantAccess;
     private final BillingService billingService;
 
     public List<Order> getActiveOrders() {
-        List<Order> activeOrders = orderRepository.findByCompanyAndFlagActive(securityUtils.getCurrentCompany(), true);
+        List<Order> activeOrders = orderRepository.findByCompanyAndFlagActive(tenantAccess.company(), true);
         activeOrders.forEach(order -> {
             order.setOrderContents(
                     order.getOrderContents() == null ? List.of()
@@ -51,59 +54,96 @@ public class OrderService {
         return getActiveOrders().stream().map(orderMapper::toDto).toList();
     }
 
+    /** The order if it belongs to the current company, otherwise 404. */
+    public Order getOwnedOrder(Long orderId) {
+        return orderRepository.findOwned(orderId, tenantAccess.company())
+                .orElseThrow(() -> TenantAccess.notFound("Order", orderId));
+    }
+
+    @Transactional(readOnly = true)
     public OrderDTO getOrderDTOById(Long orderId) {
-        return orderRepository.findById(orderId)
-                .map(orderMapper::toDto)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+        return orderMapper.toDto(getOwnedOrder(orderId));
     }
 
+    @Transactional
+    public OrderDTO inactivateOrder(Long orderId) {
+        Order order = getOwnedOrder(orderId);
+        order.setFlagActive(false);
+        order.setA$date$(Timestamp.from(Instant.now()));
+        orderRepository.save(order);
+        return orderMapper.toDto(order);
+    }
+
+    /** The order item if its order belongs to the current company, otherwise 404. */
     public OrderItem getOrderItemById(Long id) {
-        return orderItemRepository.findById(id).orElse(null);
+        return orderItemRepository.findOwned(id, tenantAccess.company())
+                .orElseThrow(() -> TenantAccess.notFound("Order item", id));
     }
 
-    public void saveOrderItem(OrderItem orderItem) {
+    @Transactional
+    public OrderItemDTO inactivateOrderItem(Long id) {
+        OrderItem orderItem = getOrderItemById(id);
+        orderItem.setFlagActive(false);
         orderItem.setA$date$(Timestamp.from(Instant.now()));
         orderItemRepository.save(orderItem);
+        return orderItemMapper.toDto(orderItem);
     }
 
     @Transactional
     public void saveOrderDTO(OrderDTO orderDTO) {
         boolean isNewOrder = orderDTO.getIdOrder() == null;
+        if (!isNewOrder) {
+            getOwnedOrder(orderDTO.getIdOrder());
+        }
+        Company company = tenantAccess.company();
         Order order = orderMapper.toEntity(orderDTO);
 
         // Detach the bill from the Order entity — managed separately below to avoid
         // the cascade replacing updated values with an unmodified proxy.
         order.setOrderBill(null);
 
+        // Every referenced record must be visible to the current company (global or its own).
         if (orderDTO.getPriority() != null && orderDTO.getPriority().getId_priority() != null) {
-            order.setPriority(priorityRepository.getReferenceById(orderDTO.getPriority().getId_priority()));
+            Long id = orderDTO.getPriority().getId_priority();
+            order.setPriority(priorityRepository.findVisible(id, company)
+                    .orElseThrow(() -> TenantAccess.notFound("Priority", id)));
         } else {
             order.setPriority(null);
         }
 
         if (orderDTO.getStatus() != null && orderDTO.getStatus().getId_status() != null) {
-            order.setStatus(statusRepository.getReferenceById(orderDTO.getStatus().getId_status()));
+            Long id = orderDTO.getStatus().getId_status();
+            order.setStatus(statusRepository.findVisible(id, company)
+                    .orElseThrow(() -> TenantAccess.notFound("Status", id)));
         } else {
             order.setStatus(null);
         }
 
         if (orderDTO.getContact() != null && orderDTO.getContact().getIdContact() != null) {
-            order.setContact(contactRepository.getReferenceById(orderDTO.getContact().getIdContact()));
+            Long id = orderDTO.getContact().getIdContact();
+            order.setContact(contactRepository.findByIdContactAndCompany(id, company)
+                    .orElseThrow(() -> TenantAccess.notFound("Contact", id)));
         } else {
             order.setContact(null);
         }
 
-        if (orderDTO.getDeliveryAddress() == null) {
-            if (orderDTO.getContact() != null && orderDTO.getContact().getShippingAddress() != null) {
-                order.setDelivery_address(orderDTO.getContact().getShippingAddress());
-            }
+        Address deliveryAddress = orderDTO.getDeliveryAddress();
+        if (deliveryAddress == null && orderDTO.getContact() != null) {
+            deliveryAddress = orderDTO.getContact().getShippingAddress();
+        }
+        if (deliveryAddress != null && deliveryAddress.getId_address() != null) {
+            Long id = deliveryAddress.getId_address();
+            order.setDelivery_address(addressRepository.findOwned(id, company)
+                    .orElseThrow(() -> TenantAccess.notFound("Address", id)));
+        } else {
+            order.setDelivery_address(null);
         }
 
         if (order.getDate_requested() == null) {
             order.setDate_requested(Timestamp.from(Instant.now()));
         }
 
-        order.setCompany(securityUtils.getCurrentCompany());
+        order.setCompany(company);
         order.setDate_status(Timestamp.from(Instant.now()));
         order.setA$date$(Timestamp.from(Instant.now()));
         Order savedOrder = orderRepository.save(order);
@@ -139,8 +179,7 @@ public class OrderService {
 
     @Transactional
     public OrderItemDTO calculateOrderItemPrice(Long id) {
-        OrderItem item = orderItemRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("OrderItem not found: " + id));
+        OrderItem item = getOrderItemById(id);
 
         BigDecimal price = BigDecimal.ZERO;
         BigDecimal expenses = null;
@@ -185,22 +224,29 @@ public class OrderService {
 
     @Transactional
     public void saveOrderItemDTO(OrderItemDTO dto) {
-        OrderItem orderItem = orderItemMapper.toEntity(dto);
-
-        if (dto.getIdOrder() != null) {
-            orderItem.setOrder(orderRepository.getReferenceById(dto.getIdOrder()));
-        } else {
-            orderItem.setOrder(null);
+        // An item only belongs to a company through its order, so the order is mandatory.
+        if (dto.getIdOrder() == null) {
+            throw new IllegalArgumentException("idOrder is required");
         }
+        if (dto.getIdOrderItem() != null) {
+            getOrderItemById(dto.getIdOrderItem());
+        }
+        Company company = tenantAccess.company();
+        OrderItem orderItem = orderItemMapper.toEntity(dto);
+        orderItem.setOrder(getOwnedOrder(dto.getIdOrder()));
 
         if (dto.getService() != null && dto.getService().getId_printing_service() != null) {
-            orderItem.setService(printingServiceRepository.getReferenceById(dto.getService().getId_printing_service()));
+            Long id = dto.getService().getId_printing_service();
+            orderItem.setService(printingServiceRepository.findVisible(id, company)
+                    .orElseThrow(() -> TenantAccess.notFound("Printing service", id)));
         } else {
             orderItem.setService(null);
         }
 
         if (dto.getMaterial() != null && dto.getMaterial().getIdMaterial() != null) {
-            orderItem.setMaterial(materialRepository.getReferenceById(dto.getMaterial().getIdMaterial()));
+            Long id = dto.getMaterial().getIdMaterial();
+            orderItem.setMaterial(materialRepository.findByIdMaterialAndCompany(id, company)
+                    .orElseThrow(() -> TenantAccess.notFound("Material", id)));
         } else {
             orderItem.setMaterial(null);
         }
@@ -208,8 +254,6 @@ public class OrderService {
         orderItem.setA$date$(Timestamp.from(Instant.now()));
         orderItemRepository.save(orderItem);
 
-        if (dto.getIdOrder() != null) {
-            billingService.recalculateForOrder(dto.getIdOrder());
-        }
+        billingService.recalculateForOrder(dto.getIdOrder());
     }
 }

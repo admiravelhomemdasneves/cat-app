@@ -1,6 +1,7 @@
 package com.camaja.catapp.services.domain;
 
 import com.camaja.catapp.configs.SecurityUtils;
+import com.camaja.catapp.configs.TenantAccess;
 import com.camaja.catapp.dto.PermissionRequestDTO;
 import com.camaja.catapp.models.AccessLevel;
 import com.camaja.catapp.models.BackofficePage;
@@ -47,9 +48,13 @@ public class RolePagePermissionService {
         BackofficePage page = backofficePageRepository.findById(dto.getBackofficePageId())
                 .orElseThrow(() -> new IllegalArgumentException("Backoffice page not found: " + dto.getBackofficePageId()));
 
-        RolePagePermission permission = dto.getId() != null
-                ? rolePagePermissionRepository.findById(dto.getId()).orElse(new RolePagePermission())
-                : new RolePagePermission();
+        RolePagePermission permission = new RolePagePermission();
+        if (dto.getId() != null) {
+            // An existing permission can only be changed if its role belongs to the current company.
+            permission = rolePagePermissionRepository.findById(dto.getId())
+                    .orElseThrow(() -> TenantAccess.notFound("Permission", dto.getId()));
+            assertCompanyOwned(permission.getAccessLevel());
+        }
 
         permission.setAccessLevel(accessLevel);
         permission.setBackofficePage(page);

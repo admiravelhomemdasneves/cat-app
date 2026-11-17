@@ -49,6 +49,16 @@ public class User implements UserDetails {
     @JoinColumn(name = "ID_ACCESS_LEVEL")
     private AccessLevel accessLevel;
 
+    /**
+     * Platform operator: the only one allowed to manage global values (company = NULL) and to list
+     * every company. Not settable through any API; grant it directly in the database.
+     */
+    @JsonIgnore
+    @Column(name = "FLAG_SUPER_ADMIN")
+    private Boolean superAdmin;
+
+    public static final String SUPER_ADMIN = "SUPER_ADMIN";
+
     public User(String username, String email, String password) {
         this.username = username;
         this.email = email;
@@ -59,8 +69,14 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (accessLevel == null) return List.of();
-        return List.of(new SimpleGrantedAuthority(accessLevel.getName()));
+        List<GrantedAuthority> authorities = new java.util.ArrayList<>();
+        if (accessLevel != null) authorities.add(new SimpleGrantedAuthority(accessLevel.getName()));
+        if (isSuperAdmin()) authorities.add(new SimpleGrantedAuthority(SUPER_ADMIN));
+        return authorities;
+    }
+
+    public boolean isSuperAdmin() {
+        return Boolean.TRUE.equals(superAdmin);
     }
 
     @Override

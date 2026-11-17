@@ -5,7 +5,9 @@ import com.camaja.catapp.dto.OrderDTO;
 import com.camaja.catapp.dto.OrderItemDTO;
 import com.camaja.catapp.dto.PermissionRequestDTO;
 import com.camaja.catapp.dto.RegisterUserDTO;
+import com.camaja.catapp.dto.StoreRequest;
 import com.camaja.catapp.dto.UserDTO;
+import com.camaja.catapp.dto.VatRequest;
 import com.camaja.catapp.models.*;
 import com.camaja.catapp.configs.SecurityUtils;
 import com.camaja.catapp.services.auth.AuthenticationService;
@@ -56,10 +58,7 @@ public class BackOfficeController {
 
     @GetMapping("/contact/inactivate/{id}")
     public ResponseEntity<ContactDTO> inactivateContactById(@PathVariable Long id) {
-        ContactDTO contactDTO = contactService.getContactById(id);
-        contactDTO.setFlagActive(false);
-        contactService.saveContactDTO(contactDTO);
-        return ResponseEntity.ok(contactDTO);
+        return ResponseEntity.ok(contactService.inactivateContact(id));
     }
 
     @PostMapping("/contact/save")
@@ -70,27 +69,21 @@ public class BackOfficeController {
 
     // ─── VATS ─────────────────────────────────────────────────────────────────────
 
+    // Global VATs/stores (company = NULL) are listed for every company; only SUPER_ADMIN can change them.
+
     @GetMapping("/vat")
     public ResponseEntity<List<Vat>> getActiveVats() {
-        List<Vat> vats = vatService.getAllVats();
-        List<Vat> activeVats = vats.stream()
-                .filter(v -> !Boolean.FALSE.equals(v.getFlagActive()))
-                .toList();
-        return ResponseEntity.ok(activeVats);
+        return ResponseEntity.ok(vatService.getVisibleVats());
     }
 
     @PostMapping("/vat/save")
-    public ResponseEntity<Vat> saveVat(@RequestBody Vat vat) {
-        vatService.saveVat(vat);
-        return ResponseEntity.ok(vat);
+    public ResponseEntity<Vat> saveVat(@RequestBody VatRequest vat) {
+        return ResponseEntity.ok(vatService.saveVat(vat));
     }
 
     @GetMapping("/vat/inactivate/{id}")
     public ResponseEntity<Vat> inactivateVatById(@PathVariable Long id) {
-        Vat vat = vatService.getVatById(id);
-        vat.setFlagActive(false);
-        vatService.saveVat(vat);
-        return ResponseEntity.ok(vat);
+        return ResponseEntity.ok(vatService.inactivateVat(id));
     }
 
 
@@ -98,25 +91,17 @@ public class BackOfficeController {
 
     @GetMapping("/store")
     public ResponseEntity<List<Store>> getActiveStores() {
-        List<Store> stores = storeService.getAllStores();
-        List<Store> activeStores = stores.stream()
-                .filter(s -> !Boolean.FALSE.equals(s.getFlagActive()))
-                .toList();
-        return ResponseEntity.ok(activeStores);
+        return ResponseEntity.ok(storeService.getVisibleStores());
     }
 
     @PostMapping("/store/save")
-    public ResponseEntity<Store> saveStore(@RequestBody Store store) {
-        storeService.saveStore(store);
-        return ResponseEntity.ok(store);
+    public ResponseEntity<Store> saveStore(@RequestBody StoreRequest store) {
+        return ResponseEntity.ok(storeService.saveStore(store));
     }
 
     @GetMapping("/store/inactivate/{id}")
     public ResponseEntity<Store> inactivateStoreById(@PathVariable Long id) {
-        Store store = storeService.getStoreById(id);
-        store.setFlagActive(false);
-        storeService.saveStore(store);
-        return ResponseEntity.ok(store);
+        return ResponseEntity.ok(storeService.inactivateStore(id));
     }
 
     // ─── ORDERS ───────────────────────────────────────────────────────────────────
@@ -129,6 +114,11 @@ public class BackOfficeController {
     @GetMapping("/orders/{id}")
     public ResponseEntity<OrderDTO> getOrderById(@PathVariable Long id) {
         return ResponseEntity.ok(orderService.getOrderDTOById(id));
+    }
+
+    @GetMapping("/orders/inactivate/{id}")
+    public ResponseEntity<OrderDTO> inactivateOrderById(@PathVariable Long id) {
+        return ResponseEntity.ok(orderService.inactivateOrder(id));
     }
 
     @GetMapping("/orders/{id}/recalculate")
@@ -150,15 +140,8 @@ public class BackOfficeController {
     }
 
     @GetMapping("/orderitems/inactivate/{id}")
-    public ResponseEntity<OrderItem> inactivateOrderItemById(@PathVariable Long id) {
-        OrderItem orderItem = orderService.getOrderItemById(id);
-
-        if (orderItem != null) {
-            orderItem.setFlagActive(false);
-            orderService.saveOrderItem(orderItem);
-        }
-
-        return ResponseEntity.ok(orderItem);
+    public ResponseEntity<OrderItemDTO> inactivateOrderItemById(@PathVariable Long id) {
+        return ResponseEntity.ok(orderService.inactivateOrderItem(id));
     }
 
     @PostMapping("/orderitems/save")
@@ -169,7 +152,7 @@ public class BackOfficeController {
 
     // ─── COMPANIES ────────────────────────────────────────────────────────────────
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
     @GetMapping("/companies")
     public ResponseEntity<List<Company>> getCompanies() {
         return ResponseEntity.ok(companyService.getAllCompanies());
@@ -183,7 +166,7 @@ public class BackOfficeController {
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/companies/save")
     public ResponseEntity<Company> saveCompany(@RequestBody Company company) {
-        return ResponseEntity.ok(companyService.saveCompany(company));
+        return ResponseEntity.ok(companyService.updateCompany(securityUtils.getCurrentCompany().getIdCompany(), company));
     }
 
     // ─── ACCESS LEVELS ────────────────────────────────────────────────────────────

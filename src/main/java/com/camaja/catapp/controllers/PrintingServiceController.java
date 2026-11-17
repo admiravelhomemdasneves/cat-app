@@ -1,71 +1,71 @@
 package com.camaja.catapp.controllers;
 
-import com.camaja.catapp.configs.SecurityUtils;
+import com.camaja.catapp.configs.TenantAccess;
 import com.camaja.catapp.models.PrintingService;
 import com.camaja.catapp.repository.PrintingServiceRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Optional;
 
+/**
+ * Rows with company = NULL are global: visible to every company, changeable only by SUPER_ADMIN.
+ * Rows of another company are never visible (404).
+ */
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/printingService")
 @CrossOrigin
 public class PrintingServiceController {
-    private final PrintingServiceRepository printingServiceRepository;
-    private final SecurityUtils securityUtils;
+    private final PrintingServiceRepository repository;
+    private final TenantAccess tenantAccess;
 
     @GetMapping
-    List<PrintingService> getActivePrintingServices() {
-        return printingServiceRepository.findVisibleByCompany(securityUtils.getCurrentCompany());
+    List<PrintingService> getActive() {
+        return repository.findVisibleByCompany(tenantAccess.company());
     }
 
     @GetMapping("/{id}")
-    Optional<PrintingService> read(@PathVariable Long id) {
-        return printingServiceRepository.findById(id);
+    PrintingService read(@PathVariable Long id) {
+        return repository.findVisible(id, tenantAccess.company())
+                .orElseThrow(() -> TenantAccess.notFound("PrintingService", id));
     }
 
+    @Transactional
     @GetMapping("/inactivate/{id}")
-    PrintingService inactivatePrintingService(@PathVariable Long id) {
-        Optional<PrintingService> printingServiceOptional = printingServiceRepository.findById(id);
-
-        if (printingServiceOptional.isPresent()) {
-            PrintingService printingService = printingServiceOptional.get();
-            printingService.setFlagActive(false);
-            printingService.setA$user$(new Timestamp(System.currentTimeMillis()));
-            printingServiceRepository.save(printingService);
-            return printingService;
-        } else {
-            return null;
-        }
+    PrintingService inactivate(@PathVariable Long id) {
+        PrintingService existing = read(id);
+        tenantAccess.assertCanModify(existing.getCompany());
+        existing.setFlagActive(false);
+        existing.setA$user$(new Timestamp(System.currentTimeMillis()));
+        return repository.save(existing);
     }
 
+    @Transactional
     @PostMapping
-    PrintingService save(@RequestBody PrintingService printingService) {
-        if (!securityUtils.isAdmin()) {
-            printingService.setCompany(securityUtils.getCurrentCompany());
+    PrintingService save(@RequestBody PrintingService input, @RequestParam(defaultValue = "false") boolean global) {
+        PrintingService target;
+        if (input.getId_printing_service() != null) {
+            target = read(input.getId_printing_service());
+            tenantAccess.assertCanModify(target.getCompany());
+        } else {
+            target = new PrintingService();
+            // New values belong to the current company; ?global=true (SUPER_ADMIN only) creates a global one.
+            target.setCompany(tenantAccess.companyForNewCatalogRow(global));
         }
-        printingService.setA$user$(new Timestamp(System.currentTimeMillis()));
-        printingServiceRepository.save(printingService);
-        return printingService;
+        target.setName(input.getName());
+        target.setDescription(input.getDescription());
+        target.setRate(input.getRate());
+        target.setRateType(input.getRateType());
+        target.setFlagActive(input.getFlagActive() == null ? Boolean.TRUE : input.getFlagActive());
+        target.setA$user$(new Timestamp(System.currentTimeMillis()));
+        return repository.save(target);
     }
 
     @PutMapping
-    PrintingService update(@RequestBody PrintingService printingService) {
-        if (!securityUtils.isAdmin()) {
-            printingService.setCompany(securityUtils.getCurrentCompany());
-        }
-        printingService.setA$user$(new Timestamp(System.currentTimeMillis()));
-        printingServiceRepository.save(printingService);
-        return printingService;
-    }
-
-    @DeleteMapping("/{id}")
-    Optional<PrintingService> delete(@PathVariable Long id) {
-        printingServiceRepository.deleteById(id);
-        return read(id);
+    PrintingService update(@RequestBody PrintingService input, @RequestParam(defaultValue = "false") boolean global) {
+        return save(input, global);
     }
 }

@@ -38,10 +38,7 @@ class BackOfficeControllerTest {
 
     // ─── Controller dependencies ──────────────────────────────────────────────
     @MockBean ContactService contactService;
-    @MockBean ProductService productService;
-    @MockBean ProductParametersService productParametersService;
     @MockBean VatService vatService;
-    @MockBean ColorService colorService;
     @MockBean StoreService storeService;
     @MockBean OrderService orderService;
     @MockBean BillingService billingService;
@@ -128,12 +125,19 @@ class BackOfficeControllerTest {
     // ─── GET /bo/companies ────────────────────────────────────────────────────
 
     @Test
-    @WithMockUser(authorities = "ADMIN")
-    void getCompanies_withAdminRole_returns200() throws Exception {
+    @WithMockUser(authorities = "SUPER_ADMIN")
+    void getCompanies_withSuperAdminRole_returns200() throws Exception {
         when(companyService.getAllCompanies()).thenReturn(List.of());
 
         mockMvc.perform(get("/bo/companies"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADMIN")
+    void getCompanies_withCompanyAdminRole_returns403() throws Exception {
+        mockMvc.perform(get("/bo/companies"))
+                .andExpect(status().isForbidden());
     }
 
     @Test

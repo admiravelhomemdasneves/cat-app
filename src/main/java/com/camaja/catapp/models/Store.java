@@ -1,6 +1,7 @@
 package com.camaja.catapp.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,10 +33,21 @@ public class Store {
     @Column(name="URL")
     private String url;
 
+    // null = global value, visible to every company
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ID_COMPANY")
+    private Company company;
+
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;
 
     @JsonIgnore
     @Column(name="A$DATE$")
     private Timestamp a$date$;
+
+    @JsonProperty("global")
+    public boolean isGlobal() {
+        return company == null;
+    }
 }

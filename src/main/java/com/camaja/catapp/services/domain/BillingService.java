@@ -1,5 +1,6 @@
 package com.camaja.catapp.services.domain;
 
+import com.camaja.catapp.configs.TenantAccess;
 import com.camaja.catapp.models.Order;
 import com.camaja.catapp.models.OrderBill;
 import com.camaja.catapp.models.OrderItem;
@@ -21,11 +22,12 @@ import java.time.Instant;
 public class BillingService {
     private final OrderRepository orderRepository;
     private final OrderBillRepository orderBillRepository;
+    private final TenantAccess tenantAccess;
 
     @Transactional
     public void recalculateForOrder(Long orderId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+        Order order = orderRepository.findOwned(orderId, tenantAccess.company())
+                .orElseThrow(() -> TenantAccess.notFound("Order", orderId));
         recalculate(order);
     }
 

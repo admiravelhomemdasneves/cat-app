@@ -12,6 +12,8 @@ import com.camaja.catapp.repository.UserRepository;
 import com.camaja.catapp.services.infrastructure.EmailService;
 import jakarta.mail.MessagingException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -55,6 +57,12 @@ public class AuthenticationService {
         }
         User user = new User(input.getUsername(), input.getEmail(), passwordEncoder.encode(input.getPassword()));
 
+        // Users are always created in the creator's own company; the client-supplied companyId is ignored.
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof User creator && creator.getCompany() != null) {
+            input.setCompanyId(creator.getCompany().getIdCompany());
+        }
+
         if (input.getCompanyId() != null) {
             Company company = companyRepository.findById(input.getCompanyId())
                     .orElseThrow(() -> new IllegalArgumentException("Company not found: " + input.getCompanyId()));
@@ -63,6 +71,11 @@ public class AuthenticationService {
         if (input.getAccessLevelId() != null) {
             AccessLevel accessLevel = accessLevelRepository.findById(input.getAccessLevelId())
                     .orElseThrow(() -> new IllegalArgumentException("Access level not found: " + input.getAccessLevelId()));
+            // Only universal roles or roles of the user's own company can be assigned.
+            if (accessLevel.getCompany() != null && (user.getCompany() == null
+                    || !accessLevel.getCompany().getIdCompany().equals(user.getCompany().getIdCompany()))) {
+                throw new IllegalArgumentException("Access level does not belong to your company");
+            }
             user.setAccessLevel(accessLevel);
         }
 

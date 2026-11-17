@@ -27,4 +27,17 @@ public class CompanyService {
         company.setA$date$(Timestamp.from(Instant.now()));
         return companyRepository.save(company);
     }
+
+    /**
+     * Updates the current user's own company. The ID in the request is ignored, so a company
+     * can never edit another one; flagActive is not client-editable.
+     */
+    public Company updateCompany(Long currentCompanyId, Company input) {
+        Company company = getCompanyById(currentCompanyId);
+        company.setName(input.getName());
+        company.setEmail(input.getEmail());
+        company.setVatNumber(input.getVatNumber());
+        company.setAddress(input.getAddress());
+        return saveCompany(company);
+    }
 }

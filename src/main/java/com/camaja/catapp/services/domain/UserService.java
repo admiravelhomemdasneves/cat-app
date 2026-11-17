@@ -1,6 +1,7 @@
 package com.camaja.catapp.services.domain;
 
 import com.camaja.catapp.configs.SecurityUtils;
+import com.camaja.catapp.configs.TenantAccess;
 import com.camaja.catapp.dto.UserDTO;
 import com.camaja.catapp.models.AccessLevel;
 import com.camaja.catapp.models.User;
@@ -35,9 +36,16 @@ public class UserService {
         return UserDTO.from(userRepository.save(user));
     }
 
+    /** The user if they belong to the current company, otherwise 404. */
+    private User getUserInCurrentCompany(Long userId) {
+        Long companyId = securityUtils.getCurrentCompany().getIdCompany();
+        return userRepository.findById(userId)
+                .filter(u -> u.getCompany() != null && companyId.equals(u.getCompany().getIdCompany()))
+                .orElseThrow(() -> TenantAccess.notFound("User", userId));
+    }
+
     public void updateAccessLevel(Long userId, Long accessLevelId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+        User user = getUserInCurrentCompany(userId);
         AccessLevel level = accessLevelRepository.findById(accessLevelId)
                 .orElseThrow(() -> new IllegalArgumentException("Access level not found: " + accessLevelId));
         if (level.getCompany() != null &&
@@ -49,8 +57,7 @@ public class UserService {
     }
 
     public void inactivateUser(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
+        User user = getUserInCurrentCompany(id);
         user.setEnabled(false);
         userRepository.save(user);
     }

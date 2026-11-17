@@ -112,6 +112,7 @@ class RolePagePermissionServiceTest {
     void savePermission_withExistingId_fetchesAndUpdatesExistingEntity() {
         RolePagePermission existing = new RolePagePermission();
         AccessLevel level = levelWithCompany(companyA);
+        existing.setAccessLevel(level);
         BackofficePage page = new BackofficePage();
         when(accessLevelRepository.findById(1L)).thenReturn(Optional.of(level));
         when(backofficePageRepository.findById(2L)).thenReturn(Optional.of(page));

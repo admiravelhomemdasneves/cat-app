@@ -1,10 +1,11 @@
 package com.camaja.catapp.services.domain;
 
-import com.camaja.catapp.configs.SecurityUtils;
+import com.camaja.catapp.configs.TenantAccess;
 import com.camaja.catapp.dto.ContactDTO;
 import com.camaja.catapp.mappers.ContactMapper;
 import com.camaja.catapp.models.Company;
 import com.camaja.catapp.models.Contact;
+import com.camaja.catapp.repository.AddressRepository;
 import com.camaja.catapp.repository.ContactRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,14 +27,15 @@ class ContactServiceTest {
 
     @Mock ContactRepository contactRepository;
     @Mock ContactMapper contactMapper;
-    @Mock SecurityUtils securityUtils;
+    @Mock AddressRepository addressRepository;
+    @Mock TenantAccess tenantAccess;
 
     @InjectMocks ContactService contactService;
 
     @Test
     void getAllContacts_usesCurrentCompanyAndFlagActiveTrue() {
         Company company = new Company();
-        when(securityUtils.getCurrentCompany()).thenReturn(company);
+        when(tenantAccess.company()).thenReturn(company);
         when(contactRepository.findByCompanyAndFlagActive(company, true))
                 .thenReturn(List.of(new Contact(), new Contact()));
         when(contactMapper.toDTO(any(Contact.class))).thenReturn(new ContactDTO());
@@ -47,7 +49,7 @@ class ContactServiceTest {
     @Test
     void saveContactDTO_setsCompanyFromSecurityContext() {
         Company company = new Company();
-        when(securityUtils.getCurrentCompany()).thenReturn(company);
+        when(tenantAccess.company()).thenReturn(company);
 
         Contact contact = new Contact();
         contact.setAddresses(new ArrayList<>());

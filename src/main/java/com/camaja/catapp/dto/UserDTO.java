@@ -15,6 +15,7 @@ public class UserDTO {
     private String companyName;
     private Long accessLevelId;
     private String accessLevelName;
+    private boolean superAdmin;
 
     public static UserDTO from(User user) {
         UserDTO dto = new UserDTO();
@@ -22,6 +23,7 @@ public class UserDTO {
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
         dto.setEnabled(user.isEnabled());
+        dto.setSuperAdmin(user.isSuperAdmin());
         if (user.getCompany() != null) {
             dto.setCompanyId(user.getCompany().getIdCompany());
             dto.setCompanyName(user.getCompany().getName());

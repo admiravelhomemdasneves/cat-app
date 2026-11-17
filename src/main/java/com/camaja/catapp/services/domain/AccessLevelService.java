@@ -1,6 +1,7 @@
 package com.camaja.catapp.services.domain;
 
 import com.camaja.catapp.configs.SecurityUtils;
+import com.camaja.catapp.configs.TenantAccess;
 import com.camaja.catapp.models.AccessLevel;
 import com.camaja.catapp.models.Company;
 import com.camaja.catapp.repository.AccessLevelRepository;
@@ -38,6 +39,14 @@ public class AccessLevelService {
                     "A universal role with name '" + level.getName() + "' already exists");
         }
         Company currentCompany = securityUtils.getCurrentCompany();
+        // Editing an existing level is only allowed for the current company's own levels.
+        if (level.getIdAccessLevel() != null) {
+            AccessLevel existing = accessLevelRepository.findById(level.getIdAccessLevel())
+                    .filter(al -> al.getCompany() != null
+                            && al.getCompany().getIdCompany().equals(currentCompany.getIdCompany()))
+                    .orElseThrow(() -> TenantAccess.notFound("Access level", level.getIdAccessLevel()));
+            level.setIdAccessLevel(existing.getIdAccessLevel());
+        }
         level.setCompany(currentCompany);
         level.setFlagActive(true);
         level.setA$date$(Timestamp.from(Instant.now()));

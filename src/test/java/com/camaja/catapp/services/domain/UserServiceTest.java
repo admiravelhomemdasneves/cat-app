@@ -13,13 +13,17 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -39,13 +43,14 @@ class UserServiceTest {
     void setUp() {
         companyA = company(1L, "Company A");
         companyB = company(2L, "Company B");
+        lenient().when(securityUtils.getCurrentCompany()).thenReturn(companyA);
     }
 
     // ─── inactivateUser ───────────────────────────────────────────────────────
 
     @Test
     void inactivateUser_setsEnabledFalseAndSaves() {
-        User user = new User("u", "u@e.com", "pwd");
+        User user = userIn(companyA);
         user.setEnabled(true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
@@ -57,19 +62,25 @@ class UserServiceTest {
     }
 
     @Test
-    void inactivateUser_withUnknownId_throwsIllegalArgumentException() {
+    void inactivateUser_withUnknownId_isNotFound() {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userService.inactivateUser(99L))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("User not found");
+        assertNotFound(() -> userService.inactivateUser(99L));
+    }
+
+    @Test
+    void inactivateUser_ofAnotherCompany_isNotFoundAndNotSaved() {
+        when(userRepository.findById(5L)).thenReturn(Optional.of(userIn(companyB)));
+
+        assertNotFound(() -> userService.inactivateUser(5L));
+        verify(userRepository, never()).save(any());
     }
 
     // ─── updateAccessLevel ────────────────────────────────────────────────────
 
     @Test
     void updateAccessLevel_universalRole_isAllowedAndSaves() {
-        User user = new User("u", "u@e.com", "pwd");
+        User user = userIn(companyA);
         AccessLevel universal = new AccessLevel();
         universal.setName("MANAGER");
         universal.setCompany(null);  // universal — allowed without company check
@@ -85,13 +96,12 @@ class UserServiceTest {
 
     @Test
     void updateAccessLevel_ownCompanysRole_isAllowedAndSaves() {
-        User user = new User("u", "u@e.com", "pwd");
+        User user = userIn(companyA);
         AccessLevel myRole = new AccessLevel();
         myRole.setName("Dev Manager");
         myRole.setCompany(companyA);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(accessLevelRepository.findById(2L)).thenReturn(Optional.of(myRole));
-        when(securityUtils.getCurrentCompany()).thenReturn(companyA);
 
         userService.updateAccessLevel(1L, 2L);
 
@@ -102,13 +112,12 @@ class UserServiceTest {
 
     @Test
     void updateAccessLevel_anotherCompanysRole_throwsIllegalArgumentException() {
-        User user = new User("u", "u@e.com", "pwd");
+        User user = userIn(companyA);
         AccessLevel theirRole = new AccessLevel();
         theirRole.setName("Their Role");
         theirRole.setCompany(companyB);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(accessLevelRepository.findById(2L)).thenReturn(Optional.of(theirRole));
-        when(securityUtils.getCurrentCompany()).thenReturn(companyA);
 
         assertThatThrownBy(() -> userService.updateAccessLevel(1L, 2L))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -116,8 +125,16 @@ class UserServiceTest {
     }
 
     @Test
+    void updateAccessLevel_ofAnotherCompanysUser_isNotFoundAndNotSaved() {
+        when(userRepository.findById(5L)).thenReturn(Optional.of(userIn(companyB)));
+
+        assertNotFound(() -> userService.updateAccessLevel(5L, 2L));
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
     void updateAccessLevel_withInvalidAccessLevelId_throwsIllegalArgumentException() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(new User()));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(userIn(companyA)));
         when(accessLevelRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.updateAccessLevel(1L, 99L))
@@ -126,6 +143,18 @@ class UserServiceTest {
     }
 
     // ─── helpers ──────────────────────────────────────────────────────────────
+
+    private static void assertNotFound(org.assertj.core.api.ThrowableAssert.ThrowingCallable call) {
+        assertThatThrownBy(call)
+                .isInstanceOfSatisfying(ResponseStatusException.class,
+                        e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND));
+    }
+
+    private User userIn(Company company) {
+        User user = new User("u", "u@e.com", "pwd");
+        user.setCompany(company);
+        return user;
+    }
 
     private Company company(Long id, String name) {
         Company c = new Company();

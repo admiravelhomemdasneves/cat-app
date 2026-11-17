@@ -26,4 +26,9 @@ public class SecurityUtils {
     public boolean isAdmin() {
         return "ADMIN".equals(getCurrentRole());
     }
+
+    /** Platform-wide operator (not a company role): manages global values. */
+    public boolean isSuperAdmin() {
+        return getCurrentUser().isSuperAdmin();
+    }
 }

@@ -1,24 +1,26 @@
 package com.camaja.catapp.services.domain;
 
-import com.camaja.catapp.dto.OrderProductDTO;
-import com.camaja.catapp.dto.ProductParameterDTO;
-import com.camaja.catapp.models.*;
+import com.camaja.catapp.configs.TenantAccess;
+import com.camaja.catapp.models.Company;
+import com.camaja.catapp.models.Order;
+import com.camaja.catapp.models.OrderBill;
+import com.camaja.catapp.models.OrderItem;
 import com.camaja.catapp.repository.OrderBillRepository;
 import com.camaja.catapp.repository.OrderRepository;
-import com.camaja.catapp.repository.PrintingServiceRepository;
-import com.camaja.catapp.repository.ProductParameterRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -27,168 +29,86 @@ class BillingServiceTest {
 
     @Mock OrderRepository orderRepository;
     @Mock OrderBillRepository orderBillRepository;
-    @Mock ProductParameterRepository productParameterRepository;
-    @Mock PrintingServiceRepository printingServiceRepository;
+    @Mock TenantAccess tenantAccess;
 
     @InjectMocks BillingService billingService;
 
     // ─── recalculate ──────────────────────────────────────────────────────────
 
     @Test
-    void recalculate_withNoActiveItems_setsBillTotalsToZero() {
+    void recalculate_withNoItems_setsTotalToZero() {
         Order order = new Order();
-        order.setOrderProducts(List.of());
-        OrderBill existingBill = new OrderBill();
-        existingBill.setVatRate(new BigDecimal("0.23"));
-        order.setOrderBill(existingBill);
-
-        billingService.recalculate(order);
-
-        ArgumentCaptor<OrderBill> captor = ArgumentCaptor.forClass(OrderBill.class);
-        verify(orderBillRepository).save(captor.capture());
-        OrderBill saved = captor.getValue();
-        assertThat(saved.getExpensesAmount()).isEqualByComparingTo(BigDecimal.ZERO);
-        assertThat(saved.getServiceAmount()).isEqualByComparingTo(BigDecimal.ZERO);
-        assertThat(saved.getVatAmount()).isEqualByComparingTo(BigDecimal.ZERO);
-        assertThat(saved.getTotalAmount()).isEqualByComparingTo(BigDecimal.ZERO);
-    }
-
-    @Test
-    void recalculate_withInactiveItems_treatsThemAsEmpty() {
-        OrderProduct inactive = new OrderProduct();
-        inactive.setFlagActive(false);
-        inactive.setUnitPrice(new BigDecimal("100.00"));
-        inactive.setQuantity(1);
-
-        Order order = new Order();
-        order.setOrderProducts(List.of(inactive));
-        order.setOrderBill(billWithVat("0.00"));
-
-        billingService.recalculate(order);
-
-        ArgumentCaptor<OrderBill> captor = ArgumentCaptor.forClass(OrderBill.class);
-        verify(orderBillRepository).save(captor.capture());
-        assertThat(captor.getValue().getExpensesAmount()).isEqualByComparingTo(BigDecimal.ZERO);
-    }
-
-    @Test
-    void recalculate_withExpensesAndServiceItems_computesTotalsCorrectly() {
-        OrderProduct expenseItem = new OrderProduct();
-        expenseItem.setFlagActive(true);
-        expenseItem.setUnitPrice(new BigDecimal("10.00"));
-        expenseItem.setQuantity(2);
-
-        OrderProduct serviceItem = new OrderProduct();
-        serviceItem.setFlagActive(true);
-        serviceItem.setServiceHourlyRate(new BigDecimal("25.00"));
-        serviceItem.setServiceHours(3);
-
-        Order order = new Order();
-        order.setOrderProducts(List.of(expenseItem, serviceItem));
+        order.setOrderContents(List.of());
         order.setOrderBill(billWithVat("0.23"));
 
         billingService.recalculate(order);
 
-        ArgumentCaptor<OrderBill> captor = ArgumentCaptor.forClass(OrderBill.class);
-        verify(orderBillRepository).save(captor.capture());
-        OrderBill saved = captor.getValue();
-        assertThat(saved.getExpensesAmount()).isEqualByComparingTo("20.0000");
-        assertThat(saved.getServiceAmount()).isEqualByComparingTo("75.0000");
-        assertThat(saved.getVatAmount()).isEqualByComparingTo("21.8500");
-        assertThat(saved.getTotalAmount()).isEqualByComparingTo("116.8500");
+        assertThat(savedBill().getTotalAmount()).isEqualByComparingTo(BigDecimal.ZERO);
     }
 
     @Test
-    void recalculate_withNullOrderBill_createsNewBill() {
+    void recalculate_ignoresInactiveItemsAndItemsWithoutPrice() {
         Order order = new Order();
-        order.setOrderProducts(List.of());
-        order.setOrderBill(null);
+        order.setOrderContents(List.of(item("100.00", false), item(null, true), item("10.00", true)));
+        order.setOrderBill(billWithVat("0.00"));
 
         billingService.recalculate(order);
 
-        ArgumentCaptor<OrderBill> captor = ArgumentCaptor.forClass(OrderBill.class);
-        verify(orderBillRepository).save(captor.capture());
-        assertThat(captor.getValue()).isNotNull();
-    }
-
-    // ─── snapshotPrices ───────────────────────────────────────────────────────
-
-    @Test
-    void snapshotPrices_whenUnitPriceNull_copiesPriceFromProductParameter() {
-        OrderProduct item = new OrderProduct();
-        item.setUnitPrice(null);
-
-        ProductParameterDTO productDTO = new ProductParameterDTO();
-        productDTO.setIdProductParameter(5L);
-
-        OrderProductDTO dto = new OrderProductDTO();
-        dto.setProduct(productDTO);
-
-        ProductParameters pp = new ProductParameters();
-        pp.setPrice(new BigDecimal("19.99"));
-        when(productParameterRepository.findById(5L)).thenReturn(Optional.of(pp));
-
-        billingService.snapshotPrices(item, dto);
-
-        assertThat(item.getUnitPrice()).isEqualByComparingTo("19.99");
+        assertThat(savedBill().getTotalAmount()).isEqualByComparingTo("10.0000");
     }
 
     @Test
-    void snapshotPrices_whenUnitPriceAlreadySet_doesNotOverwrite() {
-        OrderProduct item = new OrderProduct();
-        item.setUnitPrice(new BigDecimal("9.99"));
+    void recalculate_appliesVatToTheSumOfActivePrices() {
+        Order order = new Order();
+        order.setOrderContents(List.of(item("20.00", true), item("75.00", true)));
+        order.setOrderBill(billWithVat("0.23"));
 
-        ProductParameterDTO productDTO = new ProductParameterDTO();
-        productDTO.setIdProductParameter(5L);
+        billingService.recalculate(order);
 
-        OrderProductDTO dto = new OrderProductDTO();
-        dto.setProduct(productDTO);
-
-        billingService.snapshotPrices(item, dto);
-
-        verify(productParameterRepository, never()).findById(any());
-        assertThat(item.getUnitPrice()).isEqualByComparingTo("9.99");
+        assertThat(savedBill().getTotalAmount()).isEqualByComparingTo("116.8500");
     }
 
     @Test
-    void snapshotPrices_whenServiceHourlyRateNull_copiesRateFromPrintingService() {
-        OrderProduct item = new OrderProduct();
-        item.setServiceHourlyRate(null);
+    void recalculate_withNullOrderBill_createsNewBillForTheOrder() {
+        Order order = new Order();
+        order.setOrderContents(List.of(item("5.00", true)));
 
-        PrintingService ps = new PrintingService();
-        ps.setId_printing_service(3L);
-        ps.setHourlyRate(new BigDecimal("50.00"));
+        billingService.recalculate(order);
 
-        OrderProductDTO dto = new OrderProductDTO();
-        dto.setPrintingService(ps);
-
-        when(printingServiceRepository.findById(3L)).thenReturn(Optional.of(ps));
-
-        billingService.snapshotPrices(item, dto);
-
-        assertThat(item.getServiceHourlyRate()).isEqualByComparingTo("50.00");
+        OrderBill saved = savedBill();
+        assertThat(saved.getOrder()).isSameAs(order);
+        assertThat(saved.getTotalAmount()).isEqualByComparingTo("5.0000");
     }
 
+    // ─── recalculateForOrder ──────────────────────────────────────────────────
+
     @Test
-    void snapshotPrices_whenServiceHourlyRateAlreadySet_doesNotOverwrite() {
-        OrderProduct item = new OrderProduct();
-        item.setServiceHourlyRate(new BigDecimal("30.00"));
+    void recalculateForOrder_ofAnotherCompany_isNotFound() {
+        Company company = new Company();
+        when(tenantAccess.company()).thenReturn(company);
+        when(orderRepository.findOwned(9L, company)).thenReturn(Optional.empty());
 
-        PrintingService ps = new PrintingService();
-        ps.setId_printing_service(3L);
-
-        OrderProductDTO dto = new OrderProductDTO();
-        dto.setPrintingService(ps);
-
-        billingService.snapshotPrices(item, dto);
-
-        verify(printingServiceRepository, never()).findById(any());
-        assertThat(item.getServiceHourlyRate()).isEqualByComparingTo("30.00");
+        assertThatThrownBy(() -> billingService.recalculateForOrder(9L))
+                .isInstanceOf(ResponseStatusException.class);
+        verify(orderBillRepository, never()).save(any());
     }
 
     // ─── helpers ─────────────────────────────────────────────────────────────
 
-    private OrderBill billWithVat(String rate) {
+    private OrderBill savedBill() {
+        ArgumentCaptor<OrderBill> captor = ArgumentCaptor.forClass(OrderBill.class);
+        verify(orderBillRepository).save(captor.capture());
+        return captor.getValue();
+    }
+
+    private static OrderItem item(String price, boolean active) {
+        OrderItem item = new OrderItem();
+        item.setPrice(price == null ? null : new BigDecimal(price));
+        item.setFlagActive(active);
+        return item;
+    }
+
+    private static OrderBill billWithVat(String rate) {
         OrderBill bill = new OrderBill();
         bill.setVatRate(new BigDecimal(rate));
         return bill;

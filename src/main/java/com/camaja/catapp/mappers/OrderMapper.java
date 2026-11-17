@@ -3,20 +3,18 @@ package com.camaja.catapp.mappers;
 import com.camaja.catapp.dto.ContactDTO;
 import com.camaja.catapp.dto.OrderDTO;
 import com.camaja.catapp.dto.OrderItemDTO;
-import com.camaja.catapp.models.Contact;
-import com.camaja.catapp.models.Order;
-import com.camaja.catapp.models.OrderItem;
-import com.camaja.catapp.models.Status;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.camaja.catapp.models.*;
+import jakarta.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
+@RequiredArgsConstructor
 @Component
 public class OrderMapper {
-    @Autowired ContactMapper contactMapper;
-    @Autowired OrderItemMapper orderItemMapper;
+    private final ContactMapper contactMapper;
+    private final OrderItemMapper orderItemMapper;
 
     public OrderDTO toDto(Order value) {
         OrderDTO orderDTO = new OrderDTO();
@@ -29,11 +27,6 @@ public class OrderMapper {
         orderDTO.setDateConclusion(value.getDate_conclusion());
         orderDTO.setDateDue(value.getDate_due());
         orderDTO.setDeliveryAddress(value.getDelivery_address());
-        orderDTO.setBillAddress(value.getBill_address());
-        orderDTO.setExpensesPrice(value.getExpensesPrice());
-        orderDTO.setServicePrice(value.getServicePrice());
-        orderDTO.setTotalPrice(value.getTotalPrice());
-        orderDTO.setVat(value.getVat());
         orderDTO.setFlagActive(value.getFlagActive());
 
         if (value.getContact() != null) {
@@ -41,8 +34,18 @@ public class OrderMapper {
             orderDTO.setContact(contactDTO);
         }
 
-        List<OrderItemDTO> orderItemDTOS = value.getOrderItems().stream().map(orderItemMapper::toDto).toList();
-        orderDTO.setOrderItems(orderItemDTOS);
+        if (value.getOrderBill() != null) {
+            OrderBill orderBill = value.getOrderBill();
+            orderDTO.setIdOrderBill(orderBill.getIdOrderBill());
+            orderDTO.setBillAddress(orderBill.getBill_address());
+            orderDTO.setNif(orderBill.getNif());
+            orderDTO.setVatRate(orderBill.getVatRate());
+            orderDTO.setTotalAmount(orderBill.getTotalAmount());
+        }
+
+        List<OrderItemDTO> orderItemDTOs = value.getOrderContents() == null ? List.of()
+                : value.getOrderContents().stream().map(orderItemMapper::toDto).toList();
+        orderDTO.setOrderContents(orderItemDTOs);
 
         return orderDTO;
     }
@@ -58,26 +61,32 @@ public class OrderMapper {
         order.setDate_conclusion(value.getDateConclusion());
         order.setDate_due(value.getDateDue());
         order.setDelivery_address(value.getDeliveryAddress());
-        order.setBill_address(value.getBillAddress());
-        order.setExpensesPrice(value.getExpensesPrice());
-        order.setServicePrice(value.getServicePrice());
-        order.setTotalPrice(value.getTotalPrice());
-        order.setVat(value.getVat());
         order.setFlagActive(value.getFlagActive());
+
+        if (hasBillingData(value)) {
+            order.setOrderBill(getOrderBill(value));
+        }
 
         if (value.getContact() != null) {
             Contact contact = contactMapper.toEntity(value.getContact());
             order.setContact(contact);
         }
 
-        List<OrderItem> orderItemList = new ArrayList<>();
-
-        if (value.getOrderItems() != null) {
-            value.getOrderItems().forEach(orderItem -> orderItemList.add(orderItemMapper.toEntity(orderItem)));
-        }
-
-        order.setOrderItems(orderItemList);
-
         return order;
+    }
+
+    @Nonnull
+    private static OrderBill getOrderBill(OrderDTO value) {
+        OrderBill orderBill = new OrderBill();
+        orderBill.setIdOrderBill(value.getIdOrderBill());
+        if (value.getBillAddress() != null) orderBill.setBill_address(value.getBillAddress());
+        if (value.getVatRate() != null) orderBill.setVatRate(value.getVatRate());
+        if (value.getTotalAmount() != null) orderBill.setTotalAmount(value.getTotalAmount());
+        return orderBill;
+    }
+
+    private static boolean hasBillingData(OrderDTO dto) {
+        return dto.getIdOrderBill() != null || dto.getVatRate() != null
+                || dto.getTotalAmount() != null || dto.getBillAddress() != null;
     }
 }

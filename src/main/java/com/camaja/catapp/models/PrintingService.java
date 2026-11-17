@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 @Getter
@@ -25,6 +26,17 @@ public class PrintingService {
     @Size(max=400, message="Description can't have more than 400 characters")
     @Column(name="DESCRIPTION")
     private String description;
+
+    @Column(name = "RATE", precision = 19, scale = 4)
+    private BigDecimal rate;
+
+    @Column(name = "RATE_TYPE")
+    private String rateType;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ID_COMPANY")
+    private Company company;
 
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;

@@ -35,8 +35,8 @@ public class Order {
     private Priority priority;
 
     @OneToMany(mappedBy="order")
-    @JsonManagedReference("order-items")
-    private List<OrderItem> orderItems;
+    @JsonManagedReference("order-contents")
+    private List<OrderItem> orderContents;
 
     @Column(name="DATE_REQUESTED")
     private Timestamp date_requested;
@@ -54,25 +54,12 @@ public class Order {
     @JoinColumn(name="DELIVERY_ADDRESS")
     private Address delivery_address;
 
-    @ManyToOne
-    @JoinColumn(name="BILL_ADDRESS")
-    private Address bill_address;
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+    private OrderBill orderBill;
 
-    @ManyToOne
-    @JoinColumn(name = "ID_PRICE_EXPENSE")
-    private Price expensesPrice;
-
-    @ManyToOne
-    @JoinColumn(name = "ID_PRICE_SERVICE")
-    private Price servicePrice;
-
-    @ManyToOne
-    @JoinColumn(name = "ID_PRICE_TOTAL")
-    private Price totalPrice;
-
-    @ManyToOne
-    @JoinColumn(name = "ID_VAT")
-    private Vat vat;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ID_COMPANY")
+    private Company company;
 
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;

@@ -1,5 +1,6 @@
 package com.camaja.catapp.services.auth;
 
+import com.camaja.catapp.models.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -35,7 +36,16 @@ public class JwtService {
     }
 
     public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+        Map<String, Object> claims = new HashMap<>();
+        if (userDetails instanceof User user) {
+            if (user.getCompany() != null) {
+                claims.put("companyId", user.getCompany().getIdCompany());
+            }
+            if (user.getAccessLevel() != null) {
+                claims.put("role", user.getAccessLevel().getName());
+            }
+        }
+        return generateToken(claims, userDetails);
     }
 
     public String generateToken(Map<String,Object> extraClaims, UserDetails userDetails) {

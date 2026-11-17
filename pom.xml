@@ -22,7 +22,6 @@
 			<id>dev</id>
 			<properties>
 				<env>src/main/resources/dev</env>
-				<maven.test.skip>true</maven.test.skip>
 			</properties>
 			<activation>
 				<activeByDefault>true</activeByDefault>
@@ -38,7 +37,6 @@
 			<id>prod</id>
 			<properties>
 				<env>src/main/resources/prod</env>
-				<maven.test.skip>true</maven.test.skip>
 			</properties>
 		</profile>
 	</profiles>
@@ -113,6 +111,11 @@
 			<groupId>com.azure</groupId>
 			<artifactId>azure-storage-blob</artifactId>
 			<version>12.25.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 

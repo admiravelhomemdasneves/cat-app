@@ -9,4 +9,6 @@ public class RegisterUserDTO {
     private String email;
     private String password;
     private String username;
+    private Long companyId;
+    private Long accessLevelId;
 }

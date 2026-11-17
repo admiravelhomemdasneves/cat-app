@@ -26,12 +26,16 @@ public class Status {
     @Column(name="DESCRIPTION")
     private String description;
 
-    @ManyToOne
-    @JoinColumn(name="COLOR")
-    private Color color;
+    @Column(name="COLOR_CODE")
+    private String colorCode;
 
     @Column(name="TERMINAL_STATUS")
     private Boolean terminalStatus;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ID_COMPANY")
+    private Company company;
 
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;

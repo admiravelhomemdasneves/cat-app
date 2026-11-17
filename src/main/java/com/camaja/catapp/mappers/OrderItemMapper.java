@@ -1,38 +1,46 @@
 package com.camaja.catapp.mappers;
 
 import com.camaja.catapp.dto.OrderItemDTO;
+import com.camaja.catapp.models.Material;
 import com.camaja.catapp.models.Order;
 import com.camaja.catapp.models.OrderItem;
 import com.camaja.catapp.models.PrintingService;
-import com.camaja.catapp.models.ProductParameters;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+@RequiredArgsConstructor
 @Component
 public class OrderItemMapper {
-    @Autowired ProductParameterMapper productParameterMapper;
 
     public OrderItemDTO toDto(OrderItem value) {
-        OrderItemDTO itemDTO = new OrderItemDTO();
-        itemDTO.setIdOrderItem(value.getId_order_product());
-        itemDTO.setIdOrder(value.getOrder().getId_order());
-        itemDTO.setDescription(value.getDescription());
-        itemDTO.setPrintingService(value.getPrintingService());
-        itemDTO.setQuantity(value.getQuantity());
-        itemDTO.setFlagActive(value.getFlagActive());
+        OrderItemDTO dto = new OrderItemDTO();
+        dto.setIdOrderItem(value.getIdOrderItem());
+        dto.setDescription(value.getDescription());
+        dto.setService(value.getService());
+        dto.setMaterial(value.getMaterial());
+        dto.setQuantity(value.getQuantity());
+        dto.setServiceRate(value.getServiceRate());
+        dto.setServiceHours(value.getServiceHours());
+        dto.setExpenses(value.getExpenses());
+        dto.setPrice(value.getPrice());
+        dto.setFlagActive(value.getFlagActive());
 
-        if (value.getProduct() != null) {
-            itemDTO.setProduct(productParameterMapper.toDto(value.getProduct()));
+        if (value.getOrder() != null) {
+            dto.setIdOrder(value.getOrder().getId_order());
         }
 
-        return itemDTO;
+        return dto;
     }
 
     public OrderItem toEntity(OrderItemDTO value) {
         OrderItem orderItem = new OrderItem();
-        orderItem.setId_order_product(value.getIdOrderItem());
+        orderItem.setIdOrderItem(value.getIdOrderItem());
         orderItem.setDescription(value.getDescription());
         orderItem.setQuantity(value.getQuantity());
+        orderItem.setServiceRate(value.getServiceRate());
+        orderItem.setServiceHours(value.getServiceHours());
+        orderItem.setExpenses(value.getExpenses());
+        orderItem.setPrice(value.getPrice());
         orderItem.setFlagActive(value.getFlagActive());
 
         if (value.getIdOrder() != null) {
@@ -41,16 +49,16 @@ public class OrderItemMapper {
             orderItem.setOrder(order);
         }
 
-        if (value.getProduct() != null && value.getProduct().getIdProductParameter() != null) {
-            ProductParameters productParameters = new ProductParameters();
-            productParameters.setIdProductParameter(value.getProduct().getIdProductParameter());
-            orderItem.setProduct(productParameters);
+        if (value.getService() != null && value.getService().getId_printing_service() != null) {
+            PrintingService ps = new PrintingService();
+            ps.setId_printing_service(value.getService().getId_printing_service());
+            orderItem.setService(ps);
         }
 
-        if (value.getPrintingService() != null && value.getPrintingService().getId_printing_service() != null) {
-            PrintingService printingService = new PrintingService();
-            printingService.setId_printing_service(value.getPrintingService().getId_printing_service());
-            orderItem.setPrintingService(printingService);
+        if (value.getMaterial() != null && value.getMaterial().getIdMaterial() != null) {
+            Material m = new Material();
+            m.setIdMaterial(value.getMaterial().getIdMaterial());
+            orderItem.setMaterial(m);
         }
 
         return orderItem;

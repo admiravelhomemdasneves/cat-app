@@ -7,37 +7,50 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 @Getter
 @Setter
 @Entity
-@Table(name="CAT_ORDER_PRODUCTS", schema="CATAPP")
+@Table(name="CAT_ORDER_ITEMS", schema="CATAPP")
 public class OrderItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="ID_ORDER_PRODUCT")
-    private Long id_order_product;
+    @Column(name="ID_ORDER_ITEM")
+    private Long idOrderItem;
 
     @ManyToOne
     @JoinColumn(name="ID_ORDER")
-    @JsonBackReference("order-items")
+    @JsonBackReference("order-contents")
     private Order order;
 
-    @Size(max=400, message="Description can't have more than 400 characters")
+    @Size(max=400)
     @Column(name="DESCRIPTION")
     private String description;
 
     @ManyToOne
-    @JoinColumn(name="ID_PRODUCT_PARAMETER")
-    private ProductParameters product;
+    @JoinColumn(name="ID_PRINTING_SERVICE")
+    private PrintingService service;
 
     @ManyToOne
-    @JoinColumn(name="ID_PRINTING_SERVICE")
-    private PrintingService printingService;
+    @JoinColumn(name="ID_MATERIAL")
+    private Material material;
 
-    @Column(name="QUANTITY")
-    private Integer quantity;
+    @Column(name="QUANTITY", precision=19, scale=4)
+    private BigDecimal quantity;
+
+    @Column(name="SERVICE_RATE", precision=19, scale=4)
+    private BigDecimal serviceRate;
+
+    @Column(name="SERVICE_HOURS", precision=19, scale=4)
+    private BigDecimal serviceHours;
+
+    @Column(name="EXPENSES", precision=19, scale=4)
+    private BigDecimal expenses;
+
+    @Column(name="PRICE", precision=19, scale=4)
+    private BigDecimal price;
 
     @Column(name="FLAG_ACTIVE")
     private Boolean flagActive;
@@ -45,4 +58,8 @@ public class OrderItem {
     @JsonIgnore
     @Column(name="A$DATE$")
     private Timestamp a$date$;
+
+    @JsonIgnore
+    @Column(name="A$USER$")
+    private String a$user$;
 }

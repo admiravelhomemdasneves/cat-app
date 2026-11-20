@@ -1,9 +1,9 @@
 package com.camaja.catapp.services.domain;
 
-import com.camaja.catapp.configs.SecurityUtils;
 import com.camaja.catapp.configs.TenantAccess;
 import com.camaja.catapp.dto.UserDTO;
 import com.camaja.catapp.models.AccessLevel;
+import com.camaja.catapp.models.Company;
 import com.camaja.catapp.models.User;
 import com.camaja.catapp.repository.AccessLevelRepository;
 import com.camaja.catapp.repository.UserRepository;
@@ -17,10 +17,11 @@ import java.util.List;
 public class UserService {
     private final UserRepository userRepository;
     private final AccessLevelRepository accessLevelRepository;
-    private final SecurityUtils securityUtils;
+    private final TenantAccess tenantAccess;
 
+    /** Users of the current company. A user without a company gets 403 instead of a query on NULL. */
     public List<UserDTO> getUsersInCurrentCompany() {
-        return userRepository.findByCompany(securityUtils.getCurrentCompany())
+        return userRepository.findByCompany(tenantAccess.company())
                 .stream().map(UserDTO::from).toList();
     }
 
@@ -38,7 +39,7 @@ public class UserService {
 
     /** The user if they belong to the current company, otherwise 404. */
     private User getUserInCurrentCompany(Long userId) {
-        Long companyId = securityUtils.getCurrentCompany().getIdCompany();
+        Long companyId = tenantAccess.company().getIdCompany();
         return userRepository.findById(userId)
                 .filter(u -> u.getCompany() != null && companyId.equals(u.getCompany().getIdCompany()))
                 .orElseThrow(() -> TenantAccess.notFound("User", userId));
@@ -48,8 +49,8 @@ public class UserService {
         User user = getUserInCurrentCompany(userId);
         AccessLevel level = accessLevelRepository.findById(accessLevelId)
                 .orElseThrow(() -> new IllegalArgumentException("Access level not found: " + accessLevelId));
-        if (level.getCompany() != null &&
-                !level.getCompany().getIdCompany().equals(securityUtils.getCurrentCompany().getIdCompany())) {
+        Company company = tenantAccess.company();
+        if (level.getCompany() != null && !level.getCompany().getIdCompany().equals(company.getIdCompany())) {
             throw new IllegalArgumentException("Access level does not belong to your company");
         }
         user.setAccessLevel(level);

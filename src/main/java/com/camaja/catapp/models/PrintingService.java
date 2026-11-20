@@ -43,5 +43,5 @@ public class PrintingService {
 
     @JsonIgnore
     @Column(name="A$DATE$")
-    private Timestamp a$user$;
+    private Timestamp a$date$;
 }

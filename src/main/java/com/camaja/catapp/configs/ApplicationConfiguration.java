@@ -1,5 +1,6 @@
 package com.camaja.catapp.configs;
 
+import com.camaja.catapp.models.User;
 import com.camaja.catapp.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,9 +20,14 @@ public class ApplicationConfiguration {
         this.userRepository = userRepository;
     }
 
+    /**
+     * Used both at login and when validating a JWT. A user without a company (other than a SUPER_ADMIN)
+     * is treated as non-existent, so it can neither log in nor use a token issued earlier.
+     */
     @Bean
     UserDetailsService userDetailsService() {
         return username -> userRepository.findByUsername(username)
+                .filter(User::hasValidCompany)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 

@@ -25,6 +25,7 @@ public class RolePagePermissionService {
     private final AccessLevelRepository accessLevelRepository;
     private final BackofficePageRepository backofficePageRepository;
     private final SecurityUtils securityUtils;
+    private final TenantAccess tenantAccess;
 
     public List<RolePagePermission> getPermissionsForCurrentRole() {
         AccessLevel accessLevel = securityUtils.getCurrentUser().getAccessLevel();
@@ -35,7 +36,7 @@ public class RolePagePermissionService {
     public List<RolePagePermission> getAllPermissions() {
         List<AccessLevel> relevant = new ArrayList<>();
         relevant.addAll(accessLevelRepository.findByCompanyIsNull());
-        relevant.addAll(accessLevelRepository.findByCompany(securityUtils.getCurrentCompany()));
+        relevant.addAll(accessLevelRepository.findByCompany(tenantAccess.company()));
         return rolePagePermissionRepository.findByAccessLevelIn(relevant);
     }
 
@@ -78,7 +79,7 @@ public class RolePagePermissionService {
         if (level.getCompany() == null) {
             throw new IllegalArgumentException("Cannot edit permissions for a universal role");
         }
-        Long currentCompanyId = securityUtils.getCurrentCompany().getIdCompany();
+        Long currentCompanyId = tenantAccess.company().getIdCompany();
         if (!level.getCompany().getIdCompany().equals(currentCompanyId)) {
             throw new IllegalArgumentException("Access level does not belong to your company");
         }

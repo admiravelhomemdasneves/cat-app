@@ -1,5 +1,6 @@
 package com.camaja.catapp.services.domain;
 
+import com.camaja.catapp.configs.SecurityUtils;
 import com.camaja.catapp.configs.TenantAccess;
 import com.camaja.catapp.dto.OrderDTO;
 import com.camaja.catapp.dto.OrderItemDTO;
@@ -41,6 +42,7 @@ class OrderServiceTest {
     @Mock OrderItemMapper orderItemMapper;
     @Mock TenantAccess tenantAccess;
     @Mock BillingService billingService;
+    @Mock SecurityUtils securityUtils;
 
     @InjectMocks OrderService orderService;
 

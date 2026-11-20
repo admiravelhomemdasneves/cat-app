@@ -1,6 +1,7 @@
 package com.camaja.catapp.controller;
 
 import com.camaja.catapp.configs.SecurityUtils;
+import com.camaja.catapp.configs.TenantAccess;
 import com.camaja.catapp.controllers.BackOfficeController;
 import com.camaja.catapp.services.auth.AuthenticationService;
 import com.camaja.catapp.services.auth.JwtService;
@@ -47,6 +48,7 @@ class BackOfficeControllerTest {
     @MockBean UserService userService;
     @MockBean AuthenticationService authenticationService;
     @MockBean SecurityUtils securityUtils;
+    @MockBean TenantAccess tenantAccess;
     @MockBean BackofficePageService backofficePageService;
     @MockBean RolePagePermissionService rolePagePermissionService;
 

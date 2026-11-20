@@ -37,5 +37,5 @@ public class Priority {
 
     @JsonIgnore
     @Column(name="A$DATE$")
-    private Timestamp a$user$;
+    private Timestamp a$date$;
 }

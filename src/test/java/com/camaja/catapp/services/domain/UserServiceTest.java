@@ -1,6 +1,6 @@
 package com.camaja.catapp.services.domain;
 
-import com.camaja.catapp.configs.SecurityUtils;
+import com.camaja.catapp.configs.TenantAccess;
 import com.camaja.catapp.models.AccessLevel;
 import com.camaja.catapp.models.Company;
 import com.camaja.catapp.models.User;
@@ -32,7 +32,7 @@ class UserServiceTest {
 
     @Mock UserRepository userRepository;
     @Mock AccessLevelRepository accessLevelRepository;
-    @Mock SecurityUtils securityUtils;
+    @Mock TenantAccess tenantAccess;
 
     @InjectMocks UserService userService;
 
@@ -43,7 +43,7 @@ class UserServiceTest {
     void setUp() {
         companyA = company(1L, "Company A");
         companyB = company(2L, "Company B");
-        lenient().when(securityUtils.getCurrentCompany()).thenReturn(companyA);
+        lenient().when(tenantAccess.company()).thenReturn(companyA);
     }
 
     // ─── inactivateUser ───────────────────────────────────────────────────────

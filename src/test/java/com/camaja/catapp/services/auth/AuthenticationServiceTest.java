@@ -10,13 +10,19 @@ import com.camaja.catapp.repository.AccessLevelRepository;
 import com.camaja.catapp.repository.CompanyRepository;
 import com.camaja.catapp.repository.UserRepository;
 import com.camaja.catapp.services.infrastructure.EmailService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
@@ -51,19 +57,22 @@ class AuthenticationServiceTest {
 
     // ─── signup ───────────────────────────────────────────────────────────────
 
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
+
     @Test
     void signup_happyPath_savesDisabledUserWithVerificationCode() {
+        Company companyA = company(1L);
+        loggedInAs(userIn(companyA, false));
         when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.empty());
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
-        when(companyRepository.findById(1L)).thenReturn(Optional.of(new Company()));
+        when(companyRepository.findById(1L)).thenReturn(Optional.of(companyA));
         when(accessLevelRepository.findById(2L)).thenReturn(Optional.of(new AccessLevel()));
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        RegisterUserDTO dto = new RegisterUserDTO();
-        dto.setEmail("new@example.com");
-        dto.setUsername("newuser");
-        dto.setPassword("secret");
-        dto.setCompanyId(1L);
+        RegisterUserDTO dto = newUserDto("new@example.com");
         dto.setAccessLevelId(2L);
 
         authenticationService.signup(dto);
@@ -74,6 +83,88 @@ class AuthenticationServiceTest {
         assertThat(saved.isEnabled()).isFalse();
         assertThat(saved.getVerificationCode()).isNotNull();
         assertThat(saved.getVerificationExpiration()).isAfter(LocalDateTime.now());
+        assertThat(saved.getCompany()).isSameAs(companyA);
+    }
+
+    @Test
+    void signup_byCompanyUser_ignoresRequestedCompanyAndUsesCreatorsCompany() {
+        Company companyA = company(1L);
+        loggedInAs(userIn(companyA, false));
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
+        when(companyRepository.findById(1L)).thenReturn(Optional.of(companyA));
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        RegisterUserDTO dto = newUserDto("user@example.com");
+        dto.setCompanyId(2L);  // another company: must be ignored
+
+        User saved = authenticationService.signup(dto);
+
+        assertThat(saved.getCompany()).isSameAs(companyA);
+        verify(companyRepository, never()).findById(2L);
+    }
+
+    @Test
+    void signup_bySuperAdminWithoutCompany_usesRequestedCompany() {
+        Company companyB = company(2L);
+        loggedInAs(userIn(null, true));
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
+        when(companyRepository.findById(2L)).thenReturn(Optional.of(companyB));
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        RegisterUserDTO dto = newUserDto("user@example.com");
+        dto.setCompanyId(2L);
+
+        User saved = authenticationService.signup(dto);
+
+        assertThat(saved.getCompany()).isSameAs(companyB);
+        assertThat(saved.isSuperAdmin()).isFalse();
+    }
+
+    @Test
+    void signup_bySuperAdminWithoutCompany_withoutCompanyId_isRejected() {
+        loggedInAs(userIn(null, true));
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authenticationService.signup(newUserDto("user@example.com")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("companyId is required");
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void signup_byUserWithoutCompany_isForbidden() {
+        loggedInAs(userIn(null, false));
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+
+        RegisterUserDTO dto = newUserDto("user@example.com");
+        dto.setCompanyId(1L);
+
+        assertThatThrownBy(() -> authenticationService.signup(dto))
+                .isInstanceOfSatisfying(ResponseStatusException.class,
+                        e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN));
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void signup_withAccessLevelOfAnotherCompany_isRejected() {
+        Company companyA = company(1L);
+        AccessLevel theirRole = new AccessLevel();
+        theirRole.setCompany(company(2L));
+        loggedInAs(userIn(companyA, false));
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
+        when(companyRepository.findById(1L)).thenReturn(Optional.of(companyA));
+        when(accessLevelRepository.findById(5L)).thenReturn(Optional.of(theirRole));
+
+        RegisterUserDTO dto = newUserDto("user@example.com");
+        dto.setAccessLevelId(5L);
+
+        assertThatThrownBy(() -> authenticationService.signup(dto))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("does not belong to your company");
+        verify(userRepository, never()).save(any());
     }
 
     @Test
@@ -94,14 +185,11 @@ class AuthenticationServiceTest {
 
     @Test
     void signup_withNonExistentCompanyId_throwsIllegalArgumentException() {
+        loggedInAs(userIn(null, true));
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
-        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
         when(companyRepository.findById(99L)).thenReturn(Optional.empty());
 
-        RegisterUserDTO dto = new RegisterUserDTO();
-        dto.setEmail("user@example.com");
-        dto.setUsername("user");
-        dto.setPassword("pass");
+        RegisterUserDTO dto = newUserDto("user@example.com");
         dto.setCompanyId(99L);
 
         assertThatThrownBy(() -> authenticationService.signup(dto))
@@ -210,5 +298,42 @@ class AuthenticationServiceTest {
         assertThatThrownBy(() -> authenticationService.resendVerificationCode("u@e.com"))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("already verified");
+    }
+
+    // ─── user/company invariant ───────────────────────────────────────────────
+
+    @Test
+    void userWithoutCompany_isOnlyValidForSuperAdmin() {
+        assertThat(userIn(null, false).hasValidCompany()).isFalse();
+        assertThat(userIn(null, true).hasValidCompany()).isTrue();
+        assertThat(userIn(company(1L), false).hasValidCompany()).isTrue();
+    }
+
+    // ─── helpers ──────────────────────────────────────────────────────────────
+
+    private static void loggedInAs(User user) {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities()));
+    }
+
+    private static User userIn(Company company, boolean superAdmin) {
+        User user = new User("creator", "creator@example.com", "pwd");
+        user.setCompany(company);
+        user.setSuperAdmin(superAdmin);
+        return user;
+    }
+
+    private static Company company(Long id) {
+        Company c = new Company();
+        ReflectionTestUtils.setField(c, "idCompany", id);
+        return c;
+    }
+
+    private static RegisterUserDTO newUserDto(String email) {
+        RegisterUserDTO dto = new RegisterUserDTO();
+        dto.setEmail(email);
+        dto.setUsername("user");
+        dto.setPassword("pass");
+        return dto;
     }
 }

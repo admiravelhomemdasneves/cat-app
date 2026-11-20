@@ -1,7 +1,9 @@
 package com.camaja.catapp.services.domain;
 
-import com.camaja.catapp.configs.SecurityUtils;
+import com.camaja.catapp.configs.TenantAccess;
+import com.camaja.catapp.dto.AccessLevelRequest;
 import com.camaja.catapp.models.AccessLevel;
+import org.springframework.test.util.ReflectionTestUtils;
 import com.camaja.catapp.models.Company;
 import com.camaja.catapp.repository.AccessLevelRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +26,7 @@ import static org.mockito.Mockito.*;
 class AccessLevelServiceTest {
 
     @Mock AccessLevelRepository accessLevelRepository;
-    @Mock SecurityUtils securityUtils;
+    @Mock TenantAccess tenantAccess;
 
     @InjectMocks AccessLevelService accessLevelService;
 
@@ -47,7 +49,7 @@ class AccessLevelServiceTest {
 
         when(accessLevelRepository.findByCompanyIsNull()).thenReturn(List.of(universal));
         when(accessLevelRepository.findByCompany(companyA)).thenReturn(List.of(myRole));
-        when(securityUtils.getCurrentCompany()).thenReturn(companyA);
+        when(tenantAccess.company()).thenReturn(companyA);
 
         List<AccessLevel> result = accessLevelService.getAllAccessLevels();
 
@@ -63,7 +65,7 @@ class AccessLevelServiceTest {
 
         when(accessLevelRepository.findByCompanyIsNull()).thenReturn(List.of(active, inactive, nullFlag));
         when(accessLevelRepository.findByCompany(any())).thenReturn(List.of());
-        when(securityUtils.getCurrentCompany()).thenReturn(companyA);
+        when(tenantAccess.company()).thenReturn(companyA);
 
         List<AccessLevel> result = accessLevelService.getAllAccessLevels();
 
@@ -85,11 +87,11 @@ class AccessLevelServiceTest {
 
     @Test
     void saveAccessLevel_setsCurrentCompanyAndSaves() {
-        when(securityUtils.getCurrentCompany()).thenReturn(companyA);
+        when(tenantAccess.company()).thenReturn(companyA);
         when(accessLevelRepository.findByNameAndCompanyIsNull("Dev Manager")).thenReturn(Optional.empty());
         when(accessLevelRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        AccessLevel input = new AccessLevel();
+        AccessLevelRequest input = new AccessLevelRequest();
         input.setName("Dev Manager");
 
         AccessLevel saved = accessLevelService.saveAccessLevel(input);
@@ -101,11 +103,47 @@ class AccessLevelServiceTest {
     }
 
     @Test
+    void saveAccessLevel_existingOwnRole_onlyRenamesAndKeepsCompany() {
+        AccessLevel myRole = level("Old Name", false, companyA);
+        ReflectionTestUtils.setField(myRole, "idAccessLevel", 7L);
+        when(tenantAccess.company()).thenReturn(companyA);
+        when(accessLevelRepository.findByNameAndCompanyIsNull("New Name")).thenReturn(Optional.empty());
+        when(accessLevelRepository.findById(7L)).thenReturn(Optional.of(myRole));
+        when(accessLevelRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        AccessLevelRequest input = new AccessLevelRequest();
+        input.setIdAccessLevel(7L);
+        input.setName("New Name");
+
+        AccessLevel saved = accessLevelService.saveAccessLevel(input);
+
+        assertThat(saved).isSameAs(myRole);
+        assertThat(saved.getName()).isEqualTo("New Name");
+        assertThat(saved.getCompany()).isEqualTo(companyA);
+    }
+
+    @Test
+    void saveAccessLevel_existingRoleOfAnotherCompany_isNotFoundAndNotSaved() {
+        AccessLevel theirRole = level("Their Role", true, companyB);
+        when(tenantAccess.company()).thenReturn(companyA);
+        when(accessLevelRepository.findByNameAndCompanyIsNull("Hijack")).thenReturn(Optional.empty());
+        when(accessLevelRepository.findById(8L)).thenReturn(Optional.of(theirRole));
+
+        AccessLevelRequest input = new AccessLevelRequest();
+        input.setIdAccessLevel(8L);
+        input.setName("Hijack");
+
+        assertThatThrownBy(() -> accessLevelService.saveAccessLevel(input))
+                .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
+        verify(accessLevelRepository, never()).save(any());
+    }
+
+    @Test
     void saveAccessLevel_whenNameClashesWithUniversalRole_throwsIllegalArgumentException() {
         when(accessLevelRepository.findByNameAndCompanyIsNull("ADMIN"))
                 .thenReturn(Optional.of(level("ADMIN", true, null)));
 
-        AccessLevel input = new AccessLevel();
+        AccessLevelRequest input = new AccessLevelRequest();
         input.setName("ADMIN");
 
         assertThatThrownBy(() -> accessLevelService.saveAccessLevel(input))
@@ -129,7 +167,7 @@ class AccessLevelServiceTest {
     void deleteAccessLevel_anotherCompanysRole_throwsIllegalArgumentException() {
         AccessLevel theirRole = level("Their Role", true, companyB);
         when(accessLevelRepository.findById(2L)).thenReturn(Optional.of(theirRole));
-        when(securityUtils.getCurrentCompany()).thenReturn(companyA);
+        when(tenantAccess.company()).thenReturn(companyA);
 
         assertThatThrownBy(() -> accessLevelService.deleteAccessLevel(2L))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -140,7 +178,7 @@ class AccessLevelServiceTest {
     void deleteAccessLevel_ownCompanysRole_callsDeleteById() {
         AccessLevel myRole = level("My Role", true, companyA);
         when(accessLevelRepository.findById(3L)).thenReturn(Optional.of(myRole));
-        when(securityUtils.getCurrentCompany()).thenReturn(companyA);
+        when(tenantAccess.company()).thenReturn(companyA);
 
         accessLevelService.deleteAccessLevel(3L);
 

@@ -1,5 +1,6 @@
 package com.camaja.catapp.services.domain;
 
+import com.camaja.catapp.configs.SecurityUtils;
 import com.camaja.catapp.configs.TenantAccess;
 import com.camaja.catapp.dto.OrderDTO;
 import com.camaja.catapp.dto.OrderItemDTO;
@@ -38,6 +39,7 @@ public class OrderService {
     private final OrderItemMapper orderItemMapper;
     private final TenantAccess tenantAccess;
     private final BillingService billingService;
+    private final SecurityUtils securityUtils;
 
     public List<Order> getActiveOrders() {
         List<Order> activeOrders = orderRepository.findByCompanyAndFlagActive(tenantAccess.company(), true);
@@ -85,6 +87,7 @@ public class OrderService {
         OrderItem orderItem = getOrderItemById(id);
         orderItem.setFlagActive(false);
         orderItem.setA$date$(Timestamp.from(Instant.now()));
+        orderItem.setA$user$(securityUtils.getCurrentUsername());
         orderItemRepository.save(orderItem);
         return orderItemMapper.toDto(orderItem);
     }
@@ -213,6 +216,7 @@ public class OrderService {
         item.setPrice(price);
         item.setExpenses(expenses);
         item.setA$date$(Timestamp.from(Instant.now()));
+        item.setA$user$(securityUtils.getCurrentUsername());
         orderItemRepository.save(item);
 
         if (item.getOrder() != null) {
@@ -252,6 +256,7 @@ public class OrderService {
         }
 
         orderItem.setA$date$(Timestamp.from(Instant.now()));
+        orderItem.setA$user$(securityUtils.getCurrentUsername());
         orderItemRepository.save(orderItem);
 
         billingService.recalculateForOrder(dto.getIdOrder());

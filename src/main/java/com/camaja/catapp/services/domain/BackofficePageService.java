@@ -1,5 +1,6 @@
 package com.camaja.catapp.services.domain;
 
+import com.camaja.catapp.dto.BackofficePageRequest;
 import com.camaja.catapp.models.BackofficePage;
 import com.camaja.catapp.repository.BackofficePageRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,11 @@ public class BackofficePageService {
                 .orElseThrow(() -> new IllegalArgumentException("Backoffice page not found: " + id));
     }
 
-    public BackofficePage savePage(BackofficePage page) {
+    /** Creates a page, or updates an existing one found by ID. Only name and path come from the client. */
+    public BackofficePage savePage(BackofficePageRequest request) {
+        BackofficePage page = request.getId() != null ? getPageById(request.getId()) : new BackofficePage();
+        page.setName(request.getName());
+        page.setPath(request.getPath());
         page.setA$date$(Timestamp.from(Instant.now()));
         return backofficePageRepository.save(page);
     }

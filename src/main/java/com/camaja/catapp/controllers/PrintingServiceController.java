@@ -1,6 +1,7 @@
 package com.camaja.catapp.controllers;
 
 import com.camaja.catapp.configs.TenantAccess;
+import com.camaja.catapp.dto.PrintingServiceRequest;
 import com.camaja.catapp.models.PrintingService;
 import com.camaja.catapp.repository.PrintingServiceRepository;
 import lombok.RequiredArgsConstructor;
@@ -39,13 +40,13 @@ public class PrintingServiceController {
         PrintingService existing = read(id);
         tenantAccess.assertCanModify(existing.getCompany());
         existing.setFlagActive(false);
-        existing.setA$user$(new Timestamp(System.currentTimeMillis()));
+        existing.setA$date$(new Timestamp(System.currentTimeMillis()));
         return repository.save(existing);
     }
 
     @Transactional
     @PostMapping
-    PrintingService save(@RequestBody PrintingService input, @RequestParam(defaultValue = "false") boolean global) {
+    PrintingService save(@RequestBody PrintingServiceRequest input, @RequestParam(defaultValue = "false") boolean global) {
         PrintingService target;
         if (input.getId_printing_service() != null) {
             target = read(input.getId_printing_service());
@@ -60,12 +61,12 @@ public class PrintingServiceController {
         target.setRate(input.getRate());
         target.setRateType(input.getRateType());
         target.setFlagActive(input.getFlagActive() == null ? Boolean.TRUE : input.getFlagActive());
-        target.setA$user$(new Timestamp(System.currentTimeMillis()));
+        target.setA$date$(new Timestamp(System.currentTimeMillis()));
         return repository.save(target);
     }
 
     @PutMapping
-    PrintingService update(@RequestBody PrintingService input, @RequestParam(defaultValue = "false") boolean global) {
+    PrintingService update(@RequestBody PrintingServiceRequest input, @RequestParam(defaultValue = "false") boolean global) {
         return save(input, global);
     }
 }

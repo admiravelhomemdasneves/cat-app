@@ -1,5 +1,8 @@
 package com.camaja.catapp.controllers;
 
+import com.camaja.catapp.dto.AccessLevelRequest;
+import com.camaja.catapp.dto.BackofficePageRequest;
+import com.camaja.catapp.dto.CompanyRequest;
 import com.camaja.catapp.dto.ContactDTO;
 import com.camaja.catapp.dto.OrderDTO;
 import com.camaja.catapp.dto.OrderItemDTO;
@@ -9,7 +12,7 @@ import com.camaja.catapp.dto.StoreRequest;
 import com.camaja.catapp.dto.UserDTO;
 import com.camaja.catapp.dto.VatRequest;
 import com.camaja.catapp.models.*;
-import com.camaja.catapp.configs.SecurityUtils;
+import com.camaja.catapp.configs.TenantAccess;
 import com.camaja.catapp.services.auth.AuthenticationService;
 import com.camaja.catapp.services.domain.*;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +38,7 @@ public class BackOfficeController {
     private final AccessLevelService accessLevelService;
     private final UserService userService;
     private final AuthenticationService authenticationService;
-    private final SecurityUtils securityUtils;
+    private final TenantAccess tenantAccess;
     private final BackofficePageService backofficePageService;
     private final RolePagePermissionService rolePagePermissionService;
 
@@ -160,13 +163,13 @@ public class BackOfficeController {
 
     @GetMapping("/companies/mine")
     public ResponseEntity<Company> getMyCompany() {
-        return ResponseEntity.ok(securityUtils.getCurrentCompany());
+        return ResponseEntity.ok(tenantAccess.company());
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/companies/save")
-    public ResponseEntity<Company> saveCompany(@RequestBody Company company) {
-        return ResponseEntity.ok(companyService.updateCompany(securityUtils.getCurrentCompany().getIdCompany(), company));
+    public ResponseEntity<Company> saveCompany(@RequestBody CompanyRequest company) {
+        return ResponseEntity.ok(companyService.updateCompany(tenantAccess.company().getIdCompany(), company));
     }
 
     // ─── ACCESS LEVELS ────────────────────────────────────────────────────────────
@@ -178,7 +181,7 @@ public class BackOfficeController {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/accessLevels/save")
-    public ResponseEntity<AccessLevel> saveAccessLevel(@RequestBody AccessLevel level) {
+    public ResponseEntity<AccessLevel> saveAccessLevel(@RequestBody AccessLevelRequest level) {
         return ResponseEntity.ok(accessLevelService.saveAccessLevel(level));
     }
 
@@ -227,7 +230,7 @@ public class BackOfficeController {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/pages/save")
-    public ResponseEntity<BackofficePage> savePage(@RequestBody BackofficePage page) {
+    public ResponseEntity<BackofficePage> savePage(@RequestBody BackofficePageRequest page) {
         return ResponseEntity.ok(backofficePageService.savePage(page));
     }
 

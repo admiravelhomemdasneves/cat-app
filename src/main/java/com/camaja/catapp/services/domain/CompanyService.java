@@ -1,5 +1,6 @@
 package com.camaja.catapp.services.domain;
 
+import com.camaja.catapp.dto.CompanyRequest;
 import com.camaja.catapp.models.Company;
 import com.camaja.catapp.repository.CompanyRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,10 +30,10 @@ public class CompanyService {
     }
 
     /**
-     * Updates the current user's own company. The ID in the request is ignored, so a company
-     * can never edit another one; flagActive is not client-editable.
+     * Updates the current user's own company. The request has no ID, so a company can never
+     * edit another one; flagActive is not client-editable.
      */
-    public Company updateCompany(Long currentCompanyId, Company input) {
+    public Company updateCompany(Long currentCompanyId, CompanyRequest input) {
         Company company = getCompanyById(currentCompanyId);
         company.setName(input.getName());
         company.setEmail(input.getEmail());

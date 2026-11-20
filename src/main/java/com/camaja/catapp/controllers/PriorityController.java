@@ -1,6 +1,7 @@
 package com.camaja.catapp.controllers;
 
 import com.camaja.catapp.configs.TenantAccess;
+import com.camaja.catapp.dto.PriorityRequest;
 import com.camaja.catapp.models.Priority;
 import com.camaja.catapp.repository.PriorityRepository;
 import lombok.RequiredArgsConstructor;
@@ -39,13 +40,13 @@ public class PriorityController {
         Priority existing = read(id);
         tenantAccess.assertCanModify(existing.getCompany());
         existing.setFlagActive(false);
-        existing.setA$user$(new Timestamp(System.currentTimeMillis()));
+        existing.setA$date$(new Timestamp(System.currentTimeMillis()));
         return repository.save(existing);
     }
 
     @Transactional
     @PostMapping
-    Priority save(@RequestBody Priority input, @RequestParam(defaultValue = "false") boolean global) {
+    Priority save(@RequestBody PriorityRequest input, @RequestParam(defaultValue = "false") boolean global) {
         Priority target;
         if (input.getId_priority() != null) {
             target = read(input.getId_priority());
@@ -59,12 +60,12 @@ public class PriorityController {
         target.setDescription(input.getDescription());
         target.setColorCode(input.getColorCode());
         target.setFlagActive(input.getFlagActive() == null ? Boolean.TRUE : input.getFlagActive());
-        target.setA$user$(new Timestamp(System.currentTimeMillis()));
+        target.setA$date$(new Timestamp(System.currentTimeMillis()));
         return repository.save(target);
     }
 
     @PutMapping
-    Priority update(@RequestBody Priority input, @RequestParam(defaultValue = "false") boolean global) {
+    Priority update(@RequestBody PriorityRequest input, @RequestParam(defaultValue = "false") boolean global) {
         return save(input, global);
     }
 }

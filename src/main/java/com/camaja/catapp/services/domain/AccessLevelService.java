@@ -1,7 +1,7 @@
 package com.camaja.catapp.services.domain;
 
-import com.camaja.catapp.configs.SecurityUtils;
 import com.camaja.catapp.configs.TenantAccess;
+import com.camaja.catapp.dto.AccessLevelRequest;
 import com.camaja.catapp.models.AccessLevel;
 import com.camaja.catapp.models.Company;
 import com.camaja.catapp.repository.AccessLevelRepository;
@@ -17,12 +17,12 @@ import java.util.List;
 @Service
 public class AccessLevelService {
     private final AccessLevelRepository accessLevelRepository;
-    private final SecurityUtils securityUtils;
+    private final TenantAccess tenantAccess;
 
     public List<AccessLevel> getAllAccessLevels() {
         List<AccessLevel> all = new ArrayList<>();
         all.addAll(accessLevelRepository.findByCompanyIsNull());
-        all.addAll(accessLevelRepository.findByCompany(securityUtils.getCurrentCompany()));
+        all.addAll(accessLevelRepository.findByCompany(tenantAccess.company()));
         return all.stream()
                 .filter(al -> Boolean.TRUE.equals(al.getFlagActive()))
                 .toList();
@@ -33,21 +33,24 @@ public class AccessLevelService {
                 .orElseThrow(() -> new IllegalArgumentException("Access level not found: " + id));
     }
 
-    public AccessLevel saveAccessLevel(AccessLevel level) {
-        if (accessLevelRepository.findByNameAndCompanyIsNull(level.getName()).isPresent()) {
+    public AccessLevel saveAccessLevel(AccessLevelRequest request) {
+        if (accessLevelRepository.findByNameAndCompanyIsNull(request.getName()).isPresent()) {
             throw new IllegalArgumentException(
-                    "A universal role with name '" + level.getName() + "' already exists");
+                    "A universal role with name '" + request.getName() + "' already exists");
         }
-        Company currentCompany = securityUtils.getCurrentCompany();
-        // Editing an existing level is only allowed for the current company's own levels.
-        if (level.getIdAccessLevel() != null) {
-            AccessLevel existing = accessLevelRepository.findById(level.getIdAccessLevel())
+        Company currentCompany = tenantAccess.company();
+        AccessLevel level;
+        if (request.getIdAccessLevel() != null) {
+            // Editing an existing level is only allowed for the current company's own levels.
+            level = accessLevelRepository.findById(request.getIdAccessLevel())
                     .filter(al -> al.getCompany() != null
                             && al.getCompany().getIdCompany().equals(currentCompany.getIdCompany()))
-                    .orElseThrow(() -> TenantAccess.notFound("Access level", level.getIdAccessLevel()));
-            level.setIdAccessLevel(existing.getIdAccessLevel());
+                    .orElseThrow(() -> TenantAccess.notFound("Access level", request.getIdAccessLevel()));
+        } else {
+            level = new AccessLevel();
+            level.setCompany(currentCompany);
         }
-        level.setCompany(currentCompany);
+        level.setName(request.getName());
         level.setFlagActive(true);
         level.setA$date$(Timestamp.from(Instant.now()));
         return accessLevelRepository.save(level);
@@ -59,7 +62,7 @@ public class AccessLevelService {
         if (level.getCompany() == null) {
             throw new IllegalArgumentException("Cannot delete a universal role");
         }
-        Long currentCompanyId = securityUtils.getCurrentCompany().getIdCompany();
+        Long currentCompanyId = tenantAccess.company().getIdCompany();
         if (!level.getCompany().getIdCompany().equals(currentCompanyId)) {
             throw new IllegalArgumentException("Access level does not belong to your company");
         }

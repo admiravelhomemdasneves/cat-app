@@ -1,5 +1,6 @@
 package com.camaja.catapp.services.domain;
 
+import com.camaja.catapp.dto.BackofficePageRequest;
 import com.camaja.catapp.models.BackofficePage;
 import com.camaja.catapp.repository.BackofficePageRepository;
 import org.junit.jupiter.api.Test;
@@ -35,7 +36,7 @@ class BackofficePageServiceTest {
 
     @Test
     void savePage_stampsADateBeforeSaving() {
-        BackofficePage page = new BackofficePage();
+        BackofficePageRequest page = new BackofficePageRequest();
         page.setName("Orders");
         page.setPath("/orders");
         when(backofficePageRepository.save(any(BackofficePage.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -44,6 +45,29 @@ class BackofficePageServiceTest {
 
         ArgumentCaptor<BackofficePage> captor = ArgumentCaptor.forClass(BackofficePage.class);
         verify(backofficePageRepository).save(captor.capture());
+        assertThat(captor.getValue().getName()).isEqualTo("Orders");
+        assertThat(captor.getValue().getPath()).isEqualTo("/orders");
         assertThat(captor.getValue().getA$date$()).isNotNull();
+    }
+
+    @Test
+    void savePage_withId_updatesTheExistingPage() {
+        BackofficePage existing = new BackofficePage();
+        existing.setId(3L);
+        existing.setName("Old");
+        existing.setPath("/old");
+        when(backofficePageRepository.findById(3L)).thenReturn(Optional.of(existing));
+        when(backofficePageRepository.save(any(BackofficePage.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        BackofficePageRequest page = new BackofficePageRequest();
+        page.setId(3L);
+        page.setName("Orders");
+        page.setPath("/orders");
+
+        BackofficePage saved = backofficePageService.savePage(page);
+
+        assertThat(saved).isSameAs(existing);
+        assertThat(saved.getName()).isEqualTo("Orders");
+        assertThat(saved.getPath()).isEqualTo("/orders");
     }
 }

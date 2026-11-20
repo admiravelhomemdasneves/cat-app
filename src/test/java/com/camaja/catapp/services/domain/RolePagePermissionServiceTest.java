@@ -1,6 +1,7 @@
 package com.camaja.catapp.services.domain;
 
 import com.camaja.catapp.configs.SecurityUtils;
+import com.camaja.catapp.configs.TenantAccess;
 import com.camaja.catapp.dto.PermissionRequestDTO;
 import com.camaja.catapp.models.AccessLevel;
 import com.camaja.catapp.models.BackofficePage;
@@ -33,6 +34,7 @@ class RolePagePermissionServiceTest {
     @Mock AccessLevelRepository accessLevelRepository;
     @Mock BackofficePageRepository backofficePageRepository;
     @Mock SecurityUtils securityUtils;
+    @Mock TenantAccess tenantAccess;
 
     @InjectMocks RolePagePermissionService rolePagePermissionService;
 
@@ -81,7 +83,7 @@ class RolePagePermissionServiceTest {
         AccessLevel myRole    = levelWithCompany(companyA);
         when(accessLevelRepository.findByCompanyIsNull()).thenReturn(List.of(universal));
         when(accessLevelRepository.findByCompany(companyA)).thenReturn(List.of(myRole));
-        when(securityUtils.getCurrentCompany()).thenReturn(companyA);
+        when(tenantAccess.company()).thenReturn(companyA);
         when(rolePagePermissionRepository.findByAccessLevelIn(any())).thenReturn(List.of(new RolePagePermission()));
 
         rolePagePermissionService.getAllPermissions();
@@ -98,7 +100,7 @@ class RolePagePermissionServiceTest {
         BackofficePage page = new BackofficePage();
         when(accessLevelRepository.findById(1L)).thenReturn(Optional.of(level));
         when(backofficePageRepository.findById(2L)).thenReturn(Optional.of(page));
-        when(securityUtils.getCurrentCompany()).thenReturn(companyA);
+        when(tenantAccess.company()).thenReturn(companyA);
         when(rolePagePermissionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         PermissionRequestDTO dto = dto(null, 1L, 2L);
@@ -116,7 +118,7 @@ class RolePagePermissionServiceTest {
         BackofficePage page = new BackofficePage();
         when(accessLevelRepository.findById(1L)).thenReturn(Optional.of(level));
         when(backofficePageRepository.findById(2L)).thenReturn(Optional.of(page));
-        when(securityUtils.getCurrentCompany()).thenReturn(companyA);
+        when(tenantAccess.company()).thenReturn(companyA);
         when(rolePagePermissionRepository.findById(42L)).thenReturn(Optional.of(existing));
         when(rolePagePermissionRepository.save(any())).thenReturn(existing);
 
@@ -141,7 +143,7 @@ class RolePagePermissionServiceTest {
         AccessLevel level = levelWithCompany(companyA);
         when(accessLevelRepository.findById(1L)).thenReturn(Optional.of(level));
         when(backofficePageRepository.findById(99L)).thenReturn(Optional.empty());
-        when(securityUtils.getCurrentCompany()).thenReturn(companyA);
+        when(tenantAccess.company()).thenReturn(companyA);
 
         assertThatThrownBy(() -> rolePagePermissionService.savePermission(dto(null, 1L, 99L)))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -162,7 +164,7 @@ class RolePagePermissionServiceTest {
     void savePermission_withAnotherCompanysRole_throwsIllegalArgumentException() {
         AccessLevel theirRole = levelWithCompany(companyB);
         when(accessLevelRepository.findById(1L)).thenReturn(Optional.of(theirRole));
-        when(securityUtils.getCurrentCompany()).thenReturn(companyA);
+        when(tenantAccess.company()).thenReturn(companyA);
 
         assertThatThrownBy(() -> rolePagePermissionService.savePermission(dto(null, 1L, 2L)))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -177,7 +179,7 @@ class RolePagePermissionServiceTest {
         RolePagePermission perm = new RolePagePermission();
         perm.setAccessLevel(myRole);
         when(rolePagePermissionRepository.findById(7L)).thenReturn(Optional.of(perm));
-        when(securityUtils.getCurrentCompany()).thenReturn(companyA);
+        when(tenantAccess.company()).thenReturn(companyA);
 
         rolePagePermissionService.deletePermission(7L);
 
@@ -202,7 +204,7 @@ class RolePagePermissionServiceTest {
         RolePagePermission perm = new RolePagePermission();
         perm.setAccessLevel(theirRole);
         when(rolePagePermissionRepository.findById(7L)).thenReturn(Optional.of(perm));
-        when(securityUtils.getCurrentCompany()).thenReturn(companyA);
+        when(tenantAccess.company()).thenReturn(companyA);
 
         assertThatThrownBy(() -> rolePagePermissionService.deletePermission(7L))
                 .isInstanceOf(IllegalArgumentException.class)

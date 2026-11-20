@@ -47,7 +47,7 @@ class TenantIsolationServiceTest {
 
     OrderService orderService = new OrderService(orderRepository, orderItemRepository, materialRepository,
             printingServiceRepository, contactRepository, priorityRepository, statusRepository,
-            orderBillRepository, addressRepository, orderMapper, orderItemMapper, tenantAccess, billingService);
+            orderBillRepository, addressRepository, orderMapper, orderItemMapper, tenantAccess, billingService, securityUtils);
     ContactService contactService = new ContactService(contactRepository, addressRepository, contactMapper, tenantAccess);
     VatService vatService = new VatService(vatRepository, tenantAccess);
 

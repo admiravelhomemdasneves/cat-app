@@ -1,6 +1,7 @@
 package com.camaja.catapp.controllers;
 
 import com.camaja.catapp.configs.TenantAccess;
+import com.camaja.catapp.dto.StatusRequest;
 import com.camaja.catapp.models.Status;
 import com.camaja.catapp.repository.StatusRepository;
 import lombok.RequiredArgsConstructor;
@@ -39,13 +40,13 @@ public class StatusController {
         Status existing = read(id);
         tenantAccess.assertCanModify(existing.getCompany());
         existing.setFlagActive(false);
-        existing.setA$user$(new Timestamp(System.currentTimeMillis()));
+        existing.setA$date$(new Timestamp(System.currentTimeMillis()));
         return repository.save(existing);
     }
 
     @Transactional
     @PostMapping
-    Status save(@RequestBody Status input, @RequestParam(defaultValue = "false") boolean global) {
+    Status save(@RequestBody StatusRequest input, @RequestParam(defaultValue = "false") boolean global) {
         Status target;
         if (input.getId_status() != null) {
             target = read(input.getId_status());
@@ -60,12 +61,12 @@ public class StatusController {
         target.setColorCode(input.getColorCode());
         target.setTerminalStatus(input.getTerminalStatus());
         target.setFlagActive(input.getFlagActive() == null ? Boolean.TRUE : input.getFlagActive());
-        target.setA$user$(new Timestamp(System.currentTimeMillis()));
+        target.setA$date$(new Timestamp(System.currentTimeMillis()));
         return repository.save(target);
     }
 
     @PutMapping
-    Status update(@RequestBody Status input, @RequestParam(defaultValue = "false") boolean global) {
+    Status update(@RequestBody StatusRequest input, @RequestParam(defaultValue = "false") boolean global) {
         return save(input, global);
     }
 }

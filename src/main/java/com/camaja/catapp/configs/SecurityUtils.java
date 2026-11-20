@@ -14,6 +14,15 @@ public class SecurityUtils {
         return (User) auth.getPrincipal();
     }
 
+    /** Username for the A$USER$ audit columns. */
+    public String getCurrentUsername() {
+        return getCurrentUser().getUsername();
+    }
+
+    /**
+     * Raw company of the current user: NULL only for a SUPER_ADMIN without a company.
+     * To scope data use {@link TenantAccess#company()}, which rejects that case with 403.
+     */
     public Company getCurrentCompany() {
         return getCurrentUser().getCompany();
     }

@@ -125,7 +125,8 @@ public class DataMigrationService {
                 .forEach(c -> { c.setCompany(company); contactRepository.save(c); });
 
         userRepository.findAll().stream()
-                .filter(u -> u.getCompany() == null)
+                // Every user needs a company; only a SUPER_ADMIN may legitimately have none.
+                .filter(u -> !u.hasValidCompany())
                 .forEach(u -> {
                     u.setCompany(company);
                     u.setAccessLevel(adminLevel);

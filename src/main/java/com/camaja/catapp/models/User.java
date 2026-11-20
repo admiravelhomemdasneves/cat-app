@@ -79,6 +79,20 @@ public class User implements UserDetails {
         return Boolean.TRUE.equals(superAdmin);
     }
 
+    /** Every user belongs to a company. Only a SUPER_ADMIN (platform operator) may have none. */
+    public boolean hasValidCompany() {
+        return company != null || isSuperAdmin();
+    }
+
+    /** Last line of defence: a user without a company is never written to the database. */
+    @PrePersist
+    @PreUpdate
+    void assertHasCompany() {
+        if (!hasValidCompany()) {
+            throw new IllegalStateException("A user must belong to a company");
+        }
+    }
+
     @Override
     public boolean isAccountNonExpired() { return true; }
 
